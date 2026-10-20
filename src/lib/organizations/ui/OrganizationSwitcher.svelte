@@ -6,9 +6,9 @@
 	import { onMount } from 'svelte';
 
 	// Primitives
-	import * as Popover from '../../primitives/ui/popover';
-	import * as Dialog from '../../primitives/ui/dialog';
-	import * as Avatar from '../../primitives/ui/avatar';
+	import * as Popover from '../../ui/popover';
+	import * as Dialog from '../../ui/dialog';
+	import * as Avatar from '../../ui/avatar';
 	// Icons
 	import Building2Icon from '@lucide/svelte/icons/building-2';
 	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
@@ -31,7 +31,6 @@
 	import { DIALOG_KEY } from '../utils/organization.constants';
 
 	// Types
-	import type { PopoverRootProps } from '@ark-ui/svelte';
 	import type { Path } from '$app/types';
 	import type {
 		GetActiveOrganizationType,
@@ -48,7 +47,8 @@
 
 		/** Placement of the popover relative to the trigger */
 	}: {
-		popoverPlacement?: NonNullable<PopoverRootProps['positioning']>['placement'];
+		popoverPlacement?:
+			'top' | 'bottom' | 'left' | 'right' | 'top-start' | 'top-end' | 'bottom-start' | 'bottom-end';
 		initialData?: {
 			activeUser?: GetActiveUserType;
 			organizationList?: ListOrganizationsType;

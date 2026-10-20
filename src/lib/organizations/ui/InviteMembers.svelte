@@ -3,8 +3,8 @@
 	import { SvelteMap } from 'svelte/reactivity';
 	// Primitives
 	import { toast } from 'svelte-sonner';
-	import * as Select from '../../primitives/ui/select';
-	import { createListCollection } from '@ark-ui/svelte/select';
+	import * as Select from '../../ui/select';
+	import { createListCollection } from '../../ui/collection';
 
 	// API
 	import { useQuery } from 'convex-svelte';

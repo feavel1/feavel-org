@@ -8,7 +8,7 @@
 	import { api } from '#convex/_generated/api.js';
 	import { AUTH_CONSTANTS } from '#convex/auth.constants.js';
 
-	import { Toaster } from '#lib/primitives/ui/sonner/index.js';
+	import { Toaster } from '#lib/ui/sonner/index.js';
 	import OrganizationSwitcher from '#lib/organizations/ui/OrganizationSwitcher.svelte';
 	import UserButton from '#lib/users/ui/UserButton.svelte';
 	import AuthProvider from '#lib/auth/ui/AuthProvider.svelte';

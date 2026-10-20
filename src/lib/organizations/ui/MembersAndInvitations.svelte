@@ -1,9 +1,8 @@
 <script lang="ts">
 	// Primitives
-	import * as Tabs from '../../primitives/ui/tabs';
-	import * as Dialog from '../../primitives/ui/dialog';
-	import * as Drawer from '../../primitives/ui/drawer';
-	import { Dialog as ArkDialog, useDialog } from '@ark-ui/svelte/dialog';
+	import * as Tabs from '../../ui/tabs';
+	import * as Dialog from '../../ui/dialog';
+	import * as Drawer from '../../ui/drawer';
 	// Icons
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	// Components
@@ -61,11 +60,11 @@
 
 	// State
 	let inviteMembersDrawerOpen = $state(false);
-	const inviteMembersDialog = useDialog();
+	let inviteMembersDialogOpen = $state(false);
 
 	// Handlers
 	function handleInviteMembersSuccess() {
-		inviteMembersDialog().setOpen(false);
+		inviteMembersDialogOpen = false;
 		inviteMembersDrawerOpen = false;
 	}
 </script>
@@ -94,12 +93,12 @@
 			<button
 				type="button"
 				class="btn hidden h-10 items-center gap-2 preset-filled-primary-500 text-sm md:flex"
-				onclick={() => inviteMembersDialog().setOpen(true)}
+				onclick={() => (inviteMembersDialogOpen = true)}
 			>
 				<PlusIcon class="size-5" />
 				<span>Invite members</span>
 			</button>
-			<ArkDialog.RootProvider value={inviteMembersDialog}>
+			<Dialog.Root bind:open={inviteMembersDialogOpen}>
 				<Dialog.Content class="max-w-100">
 					<Dialog.Header>
 						<Dialog.Title>Invite new members</Dialog.Title>
@@ -107,7 +106,7 @@
 					<InviteMembers onSuccess={handleInviteMembersSuccess} {initialData} />
 					<Dialog.CloseX />
 				</Dialog.Content>
-			</ArkDialog.RootProvider>
+			</Dialog.Root>
 			<Drawer.Root bind:open={inviteMembersDrawerOpen}>
 				<Drawer.Trigger
 					class="absolute right-4 bottom-4 z-10 btn h-10 preset-filled-primary-500 text-sm md:hidden"

@@ -6,7 +6,7 @@
 
 	// Primitives
 	import { toast } from 'svelte-sonner';
-	import * as Password from '../../../lib/primitives/ui/password';
+	import * as Password from '#lib/ui/password/index.js';
 
 	// Icons
 	import AlertTriangleIcon from '@lucide/svelte/icons/alert-triangle';

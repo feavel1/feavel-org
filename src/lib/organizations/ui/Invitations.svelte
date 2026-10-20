@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Primitives
-	import * as Dialog from '../../primitives/ui/dialog';
+	import * as Dialog from '../../ui/dialog';
 	import { toast } from 'svelte-sonner';
 	// Icons
 	import SearchIcon from '@lucide/svelte/icons/search';

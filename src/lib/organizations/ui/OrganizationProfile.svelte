@@ -7,7 +7,7 @@
 
 	/** UI **/
 	// Primitives
-	import * as Tabs from '../../primitives/ui/tabs';
+	import * as Tabs from '../../ui/tabs';
 	// Icons
 	import BoltIcon from '@lucide/svelte/icons/bolt';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
@@ -21,7 +21,7 @@
 	import MembersAndInvitations from './MembersAndInvitations.svelte';
 	import LeaveOrganization from './LeaveOrganization.svelte';
 	// Utils
-	import { useMobileState } from '../../primitives/utils/mobileState.svelte';
+	import { useMobileState } from '../../utils/mobileState.svelte';
 	const mobileState = useMobileState();
 
 	// API

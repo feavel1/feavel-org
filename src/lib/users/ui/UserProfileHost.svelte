@@ -6,11 +6,11 @@
 	import { resolve } from '$app/paths';
 
 	// Primitives
-	import * as Dialog from '../../primitives/ui/dialog';
+	import * as Dialog from '../../ui/dialog';
 	// Components
 	import UserProfile from './UserProfile.svelte';
 	// Utils
-	import { isEditableElement, scheduleScrollIntoView } from '../../primitives/utils/focusScroll';
+	import { isEditableElement, scheduleScrollIntoView } from '../../utils/focusScroll';
 
 	// Constants
 	import { DIALOG_KEY } from '../utils/user.constants';

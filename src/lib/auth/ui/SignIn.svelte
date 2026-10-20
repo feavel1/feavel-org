@@ -18,7 +18,7 @@
 	import MailIcon from '@lucide/svelte/icons/mail';
 
 	// Utils
-	import { cn } from '../../primitives/utils';
+	import { cn } from '../../utils';
 	import { safeRedirect } from '../utils/safeRedirect';
 	import { resolveSignInCallbackURL, resolveSignInRedirect } from '../utils/signInRedirect';
 

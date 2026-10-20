@@ -14,7 +14,7 @@
 	/** UI **/
 	// Primitives
 	import { toast } from 'svelte-sonner';
-	import * as Dialog from '../../primitives/ui/dialog';
+	import * as Dialog from '../../ui/dialog';
 	// Icons
 	import Loader2Icon from '@lucide/svelte/icons/loader-2';
 

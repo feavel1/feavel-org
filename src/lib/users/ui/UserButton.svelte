@@ -1,8 +1,8 @@
 <script lang="ts">
 	// Primitives
-	import * as Popover from '../../primitives/ui/popover';
-	import * as Dialog from '../../primitives/ui/dialog';
-	import * as Avatar from '../../primitives/ui/avatar';
+	import * as Popover from '../../ui/popover';
+	import * as Dialog from '../../ui/dialog';
+	import * as Avatar from '../../ui/avatar';
 	// Icons
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	// Components
@@ -25,7 +25,6 @@
 
 	// Types
 	import type { Snippet } from 'svelte';
-	import type { PopoverRootProps } from '@ark-ui/svelte';
 	import type { Path } from '$app/types';
 	import type { GetActiveUserType, ListAccountsType } from '../../auth/types';
 
@@ -38,7 +37,8 @@
 		/** Optional replacement for the default sign-in button. Receives `open` to
 		 * launch the UserButton-owned sign-in dialog. */
 	}: {
-		popoverPlacement?: NonNullable<PopoverRootProps['positioning']>['placement'];
+		popoverPlacement?:
+			'top' | 'bottom' | 'left' | 'right' | 'top-start' | 'top-end' | 'bottom-start' | 'bottom-end';
 		initialData?: {
 			activeUser?: GetActiveUserType;
 			accountList?: ListAccountsType;

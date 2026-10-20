@@ -1,11 +1,11 @@
 <script lang="ts">
 	// Primitives
-	import * as Dialog from '../../primitives/ui/dialog';
-	import * as Drawer from '../../primitives/ui/drawer';
-	import * as Avatar from '../../primitives/ui/avatar';
-	import * as Select from '../../primitives/ui/select';
-	import { Portal } from '@ark-ui/svelte/portal';
-	import { createListCollection } from '@ark-ui/svelte/select';
+	import * as Dialog from '../../ui/dialog';
+	import * as Drawer from '../../ui/drawer';
+	import * as Avatar from '../../ui/avatar';
+	import * as Select from '../../ui/select';
+	import Portal from '../../ui/portal.svelte';
+	import { createListCollection } from '../../ui/collection';
 	import { toast } from 'svelte-sonner';
 	// Icons
 	import SearchIcon from '@lucide/svelte/icons/search';

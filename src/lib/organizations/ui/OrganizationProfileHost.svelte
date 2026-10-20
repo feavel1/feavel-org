@@ -6,7 +6,7 @@
 	import { resolve } from '$app/paths';
 
 	// Primitives
-	import * as Dialog from '../../primitives/ui/dialog';
+	import * as Dialog from '../../ui/dialog';
 	// Components
 	import OrganizationProfile from './OrganizationProfile.svelte';
 

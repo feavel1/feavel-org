@@ -3,7 +3,7 @@
 	import { toast } from 'svelte-sonner';
 
 	// Primitives
-	import * as Password from '../../primitives/ui/password';
+	import * as Password from '../../ui/password';
 
 	// API
 	import { getAuthContext } from '../context.svelte';

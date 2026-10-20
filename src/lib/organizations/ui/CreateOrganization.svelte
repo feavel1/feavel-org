@@ -13,12 +13,12 @@
 	import Loader2Icon from '@lucide/svelte/icons/loader-2';
 	// Primitives
 	import { toast } from 'svelte-sonner';
-	import * as Avatar from '../../primitives/ui/avatar';
-	import * as ImageCropper from '../../primitives/ui/image-cropper';
-	import { getFileFromUrl } from '../../primitives/ui/image-cropper';
+	import * as Avatar from '../../ui/avatar';
+	import * as ImageCropper from '../../ui/image-cropper';
+	import { getFileFromUrl } from '../../ui/image-cropper';
 
 	// Utils
-	import { optimizeImage } from '../../primitives/utils/optimizeImage';
+	import { optimizeImage } from '../../utils/optimizeImage';
 
 	// API
 	import { useConvexClient, useQuery } from 'convex-svelte';

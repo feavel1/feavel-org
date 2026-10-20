@@ -11,11 +11,11 @@
 
 	// UI Components
 	// Primitives
-	import * as Select from '../../primitives/ui/select';
-	import { createListCollection } from '@ark-ui/svelte/select';
-	import * as Dialog from '../../primitives/ui/dialog';
-	import * as Drawer from '../../primitives/ui/drawer';
-	import * as Password from '../../primitives/ui/password';
+	import * as Select from '../../ui/select';
+	import { createListCollection } from '../../ui/collection';
+	import * as Dialog from '../../ui/dialog';
+	import * as Drawer from '../../ui/drawer';
+	import * as Password from '../../ui/password';
 	import { toast } from 'svelte-sonner';
 
 	// Icons
@@ -53,9 +53,9 @@
 	import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
 	// Utils
-	import { useMobileState } from '../../primitives/utils/mobileState.svelte';
+	import { useMobileState } from '../../utils/mobileState.svelte';
 	const mobileState = useMobileState();
-	import { isEditableElement, scheduleScrollIntoView } from '../../primitives/utils/focusScroll';
+	import { isEditableElement, scheduleScrollIntoView } from '../../utils/focusScroll';
 
 	// API
 	import { useAuth } from '@mmailaender/convex-better-auth-svelte/svelte';
@@ -525,7 +525,7 @@
 	<!-- Link New Account -->
 	{#if availableProviders.length > 0}
 		<div>
-			<Select.Root collection={providersCollection} onSelect={(e) => linkAccount(e.value)}>
+			<Select.Root collection={providersCollection} onSelect={(e) => linkAccount(String(e.value))}>
 				<Select.Trigger class="w-full" placeholder="Link new account" />
 				<Select.Content>
 					{#each providersCollection.items as item (item.value)}

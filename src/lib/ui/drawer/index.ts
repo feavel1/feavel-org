@@ -1,0 +1,10 @@
+/** STUB — replace with shadcn-svelte `drawer`. */
+export { default as Root } from './drawer-root.svelte';
+export { default as Trigger } from './drawer-trigger.svelte';
+export { default as Content } from './drawer-content.svelte';
+export { default as Header } from './drawer-header.svelte';
+export { default as Footer } from './drawer-footer.svelte';
+export { default as Title } from './drawer-title.svelte';
+export { default as Description } from './drawer-description.svelte';
+export { default as Close } from './drawer-close.svelte';
+export { default as CloseX } from './drawer-close-x.svelte';
