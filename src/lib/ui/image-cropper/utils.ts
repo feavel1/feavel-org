@@ -1,38 +1,40 @@
-/**
- * STUB-preserved helpers from the old Ark UI image-cropper.
- * The canvas crop math is unchanged — reuse it when you re-add a cropper.
- */
-export interface CropArea {
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-}
+import type { CropArea } from 'svelte-easy-crop';
 
-/** Fetch an object URL back into a File for upload. */
 export const getFileFromUrl = async (url: string, fileName = 'cropped.png'): Promise<File> => {
+	// Fetch the file data from the URL
 	const response = await fetch(url);
+
 	if (!response.ok) {
 		throw new Error(`Failed to fetch resource: ${response.status} ${response.statusText}`);
 	}
+
+	// Convert the response into a Blob
 	const blob = await response.blob();
+
+	// Create and return a File. You can set a custom type if needed.
 	return new File([blob], fileName, { type: blob.type });
 };
 
-const createImage = (url: string): Promise<HTMLImageElement> =>
-	new Promise((resolve, reject) => {
+const createImage = (url: string): Promise<HTMLImageElement> => {
+	return new Promise<HTMLImageElement>((resolve, reject) => {
 		const image = new Image();
 		image.addEventListener('load', () => resolve(image));
 		image.addEventListener('error', (error) => reject(error));
-		image.setAttribute('crossOrigin', 'anonymous');
+		image.setAttribute('crossOrigin', 'anonymous'); // needed to avoid cross-origin issues on CodeSandbox
 		image.src = url;
 	});
+};
 
-const getRadianAngle = (degreeValue: number) => (degreeValue * Math.PI) / 180;
+const getRadianAngle = (degreeValue: number) => {
+	return (degreeValue * Math.PI) / 180;
+};
 
-/**
- * Crop `imageSrc` to `pixelCrop`, returning an object URL for the PNG.
- * Sizes the canvas to a sqrt(2)-padded safe area so rotation never clips.
+/** Gets the cropped image from the src using the cropped area
+ *
+ * @param imageSrc
+ * @param pixelCrop
+ * @param rotation
+ * @returns
  */
 export const getCroppedImg = async (
 	imageSrc: string,
@@ -42,24 +44,33 @@ export const getCroppedImg = async (
 	const image = await createImage(imageSrc);
 	const canvas = document.createElement('canvas');
 	const ctx = canvas.getContext('2d');
-	if (!ctx) throw new Error('Error getting 2d rendering context');
+
+	if (!ctx) {
+		throw new Error('Error getting 2d rendering context');
+	}
 
 	const maxSize = Math.max(image.width, image.height);
 	const safeArea = 2 * ((maxSize / 2) * Math.sqrt(2));
 
+	// set each dimensions to double largest dimension to allow for a safe area for the
+	// image to rotate in without being clipped by canvas context
 	canvas.width = safeArea;
 	canvas.height = safeArea;
 
+	// translate canvas context to a central location on image to allow rotating around the center.
 	ctx.translate(safeArea / 2, safeArea / 2);
 	ctx.rotate(getRadianAngle(rotation));
 	ctx.translate(-safeArea / 2, -safeArea / 2);
 
+	// draw rotated image and store data.
 	ctx.drawImage(image, safeArea / 2 - image.width * 0.5, safeArea / 2 - image.height * 0.5);
 	const data = ctx.getImageData(0, 0, safeArea, safeArea);
 
+	// set canvas width to final desired crop size - this will clear existing context
 	canvas.width = pixelCrop.width;
 	canvas.height = pixelCrop.height;
 
+	// paste generated rotate image with correct offsets for x,y crop values.
 	ctx.putImageData(
 		data,
 		Math.round(0 - safeArea / 2 + image.width * 0.5 - pixelCrop.x),
@@ -72,13 +83,3 @@ export const getCroppedImg = async (
 		}, 'image/png');
 	});
 };
-
-export const VALID_IMAGE_TYPES = [
-	'image/apng',
-	'image/avif',
-	'image/gif',
-	'image/jpeg',
-	'image/png',
-	'image/svg+xml',
-	'image/webp'
-];

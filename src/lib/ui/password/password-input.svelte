@@ -1,24 +1,46 @@
 <script lang="ts">
-	import type { HTMLInputAttributes } from 'svelte/elements';
-	import { getPassword } from './password.svelte.js';
+	import { cn } from '../../utils.js';
+	import { box, mergeProps } from 'svelte-toolbelt';
+	import { usePasswordInput } from './password.svelte.js';
+	import type { PasswordInputProps } from './types.js';
+	import { Input } from '../input';
 
-	/** STUB — password input wired to PasswordState. */
-	let { value = $bindable(''), ...rest }: HTMLInputAttributes & { value?: string } = $props();
-	const state = getPassword();
+	let {
+		ref = $bindable(null),
+		value = $bindable(''),
+		class: className,
+		children,
+		...rest
+	}: PasswordInputProps = $props();
 
-	$effect(() => {
-		state.value = value;
+	const state = usePasswordInput({
+		value: box.with(
+			() => value,
+			(v) => (value = v)
+		),
+		ref: box.with(() => ref)
 	});
 
-	$effect(() => {
-		state.inputRef?.setCustomValidity(state.tooWeak ? 'Password is too weak' : '');
-	});
+	const mergedProps = $derived(mergeProps(rest, state.props));
 </script>
 
-<input
-	type={state.hidden ? 'password' : 'text'}
-	bind:this={state.inputRef}
-	bind:value
-	onfocus={() => (state.submitted = false)}
-	{...rest}
-/>
+<div class="relative">
+	<Input
+		{...mergedProps}
+		bind:value
+		bind:ref
+		type={state.root.opts.hidden.current ? 'password' : 'text'}
+		class={cn(
+			'transition-[width]',
+			{
+				// either or is mounted (offset 36px)
+				'pr-9': state.root.passwordState.copyMounted || state.root.passwordState.toggleMounted,
+				// both are mounted (offset 36px * 2)
+				'pr-[4.5rem]':
+					state.root.passwordState.copyMounted && state.root.passwordState.toggleMounted
+			},
+			className
+		)}
+	/>
+	{@render children?.()}
+</div>

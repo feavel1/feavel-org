@@ -1,2 +1,13 @@
-/** STUB — replace with shadcn-svelte `toggle`. */
-export { default as Root } from './toggle-root.svelte';
+import Root from './toggle.svelte';
+export {
+	toggleVariants,
+	type ToggleSize,
+	type ToggleVariant,
+	type ToggleVariants
+} from './toggle.svelte';
+
+export {
+	Root,
+	//
+	Root as Toggle
+};

@@ -1,10 +1,7 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { Drawer as DrawerPrimitive } from "vaul-svelte";
 
-	/** STUB — replace with shadcn-svelte. */
-	let { children, ...rest }: { children?: Snippet; [key: string]: unknown } = $props();
+	let { ref = $bindable(null), ...restProps }: DrawerPrimitive.TriggerProps = $props();
 </script>
 
-<button {...rest}>
-	{@render children?.()}
-</button>
+<DrawerPrimitive.Trigger bind:ref data-slot="drawer-trigger" {...restProps} />

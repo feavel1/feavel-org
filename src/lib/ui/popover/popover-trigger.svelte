@@ -1,10 +1,17 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { Popover as PopoverPrimitive } from "bits-ui";
+	import { cn } from "#lib/utils.js";
 
-	/** STUB — replace with shadcn-svelte. */
-	let { children, ...rest }: { children?: Snippet; [key: string]: unknown } = $props();
+	let {
+		ref = $bindable(null),
+		class: className,
+		...restProps
+	}: PopoverPrimitive.TriggerProps = $props();
 </script>
 
-<button {...rest}>
-	{@render children?.()}
-</button>
+<PopoverPrimitive.Trigger
+	bind:ref
+	data-slot="popover-trigger"
+	class={cn(className)}
+	{...restProps}
+/>

@@ -1,7 +1,17 @@
 <script lang="ts">
-	/** STUB — replace with shadcn-svelte `avatar`. */
-	let { src, alt, ...rest }: { src?: string | null; alt?: string | null; [key: string]: unknown } =
-		$props();
+	import { Avatar as AvatarPrimitive } from 'bits-ui';
+	import { cn } from '../../utils.js';
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		...restProps
+	}: AvatarPrimitive.ImageProps = $props();
 </script>
 
-<img {src} {alt} {...rest} />
+<AvatarPrimitive.Image
+	bind:ref
+	data-slot="avatar-image"
+	class={cn('aspect-square size-full rounded-full object-cover', className)}
+	{...restProps}
+/>

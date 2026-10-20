@@ -1,14 +1,19 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-	import { getImageCropper } from './image-cropper.svelte.js';
+	import { cn } from '../../utils.js';
+	import type { ImageCropperControlsProps } from './types';
 
-	/** STUB — no shadcn equivalent. */
-	let { children }: { children?: Snippet } = $props();
-	const state = getImageCropper();
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...rest
+	}: ImageCropperControlsProps = $props();
 </script>
 
-{#if state.open}
-	<div data-image-cropper-controls>
-		{@render children?.()}
-	</div>
-{/if}
+<div
+	{...rest}
+	bind:this={ref}
+	class={cn('flex w-full place-items-center justify-center gap-2', className)}
+>
+	{@render children?.()}
+</div>

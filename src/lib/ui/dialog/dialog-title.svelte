@@ -1,10 +1,17 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { Dialog as DialogPrimitive } from 'bits-ui';
+	import { cn } from '../../utils.js';
 
-	/** STUB — replace with shadcn-svelte. */
-	let { children, ...rest }: { children?: Snippet; [key: string]: unknown } = $props();
+	let {
+		ref = $bindable(null),
+		class: className,
+		...restProps
+	}: DialogPrimitive.TitleProps = $props();
 </script>
 
-<h2 {...rest}>
-	{@render children?.()}
-</h2>
+<DialogPrimitive.Title
+	bind:ref
+	data-slot="dialog-title"
+	class={cn('leading-none font-medium', className)}
+	{...restProps}
+/>

@@ -1,10 +1,20 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { Dialog as DialogPrimitive } from 'bits-ui';
+	import { cn } from '../../utils.js';
 
-	/** STUB — replace with shadcn-svelte. */
-	let { children, ...rest }: { children?: Snippet; [key: string]: unknown } = $props();
+	let {
+		ref = $bindable(null),
+		class: className,
+		...restProps
+	}: DialogPrimitive.DescriptionProps = $props();
 </script>
 
-<p {...rest}>
-	{@render children?.()}
-</p>
+<DialogPrimitive.Description
+	bind:ref
+	data-slot="dialog-description"
+	class={cn(
+		'text-muted-foreground *:[a]:hover:text-foreground text-sm *:[a]:underline *:[a]:underline-offset-3',
+		className
+	)}
+	{...restProps}
+/>

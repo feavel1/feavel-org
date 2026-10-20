@@ -1,50 +1,223 @@
-import { getContext, setContext } from 'svelte';
-import { ZxcvbnFactory } from '@zxcvbn-ts/core';
-import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
-import * as zxcvbnEnPackage from '@zxcvbn-ts/language-en';
+import { Context, watch } from 'runed';
+import type { ReadableBoxedValues, WritableBoxedValues } from 'svelte-toolbelt';
+import type { ZxcvbnResult } from '@zxcvbn-ts/core';
 
-/**
- * STUB — replaces the Ark UI + runed password state.
- * Keeps the zxcvbn strength meter, hidden toggle, and submitted/invalid gating.
- */
-const zxcvbn = new ZxcvbnFactory({
-	translations: zxcvbnEnPackage.translations,
-	graphs: zxcvbnCommonPackage.adjacencyGraphs,
-	dictionary: { ...zxcvbnCommonPackage.dictionary, ...zxcvbnEnPackage.dictionary }
-});
+type ZxcvbnCoreModule = typeof import('@zxcvbn-ts/core');
+type ZxcvbnRunner = InstanceType<ZxcvbnCoreModule['ZxcvbnFactory']>;
 
-export class PasswordState {
-	value = $state('');
-	hidden = $state(true);
-	submitted = $state(false);
-	minScore: number;
-	inputRef = $state<HTMLInputElement | null>(null);
+let zxcvbnRunnerPromise: Promise<ZxcvbnRunner> | null = null;
 
-	constructor(opts: { hidden: boolean; minScore: number }) {
-		this.hidden = opts.hidden;
-		this.minScore = opts.minScore;
+const loadZxcvbnRunner = async (): Promise<ZxcvbnRunner> => {
+	if (zxcvbnRunnerPromise) return zxcvbnRunnerPromise;
+
+	return Promise.all([
+		import('@zxcvbn-ts/core'),
+		import('@zxcvbn-ts/language-common'),
+		import('@zxcvbn-ts/language-en')
+	])
+		.then(([core, common, en]) => {
+			const options = {
+				translations: en.translations,
+				graphs: common.adjacencyGraphs,
+				dictionary: {
+					...common.dictionary,
+					...en.dictionary
+				}
+			};
+
+			return new core.ZxcvbnFactory(options);
+		})
+		.catch((error: unknown) => {
+			zxcvbnRunnerPromise = null;
+			throw error;
+		});
+};
+
+type PasswordRootStateProps = WritableBoxedValues<{
+	hidden: boolean;
+}> &
+	ReadableBoxedValues<{
+		minScore: number;
+	}>;
+
+type PasswordState = {
+	value: string;
+	copyMounted: boolean;
+	toggleMounted: boolean;
+	strengthMounted: boolean;
+	tainted: boolean;
+};
+
+const defaultPasswordState: PasswordState = {
+	value: '',
+	copyMounted: false,
+	toggleMounted: false,
+	strengthMounted: false,
+	tainted: false
+};
+
+class PasswordRootState {
+	passwordState = $state(defaultPasswordState);
+	strength = $state<ZxcvbnResult | undefined>(undefined);
+	strengthLoading = $state(false);
+	#requestId = 0;
+
+	constructor(readonly opts: PasswordRootStateProps) {}
+
+	resetStrength() {
+		this.#requestId += 1;
+		this.strength = undefined;
+		this.strengthLoading = false;
 	}
 
-	strength = $derived.by(() => zxcvbn.check(this.value));
-
-	get tooWeak() {
-		return this.value !== '' && this.strength.score < this.minScore;
-	}
-
-	/** Only surface errors after a submit attempt. */
-	errorMessage = $derived.by(() => {
-		const input = this.inputRef;
-		if (!input || !this.submitted || input.validity.valid) return null;
-		if (input.validity.valueMissing) {
-			const placeholder = input.getAttribute('placeholder')?.trim();
-			if (!placeholder) return 'Enter a password.';
-			return placeholder.endsWith('.') ? placeholder : `${placeholder}.`;
+	async updateStrength() {
+		const password = this.passwordState.value;
+		if (!this.passwordState.strengthMounted || password.length === 0) {
+			this.resetStrength();
+			return;
 		}
-		return input.validationMessage || 'Invalid value';
-	});
+
+		const requestId = ++this.#requestId;
+		this.strengthLoading = true;
+
+		try {
+			const zxcvbn = await loadZxcvbnRunner();
+			const result = zxcvbn.check(password);
+			if (requestId !== this.#requestId) return;
+
+			this.strength = result;
+		} catch {
+			if (requestId !== this.#requestId) return;
+
+			this.strength = undefined;
+		} finally {
+			if (requestId === this.#requestId) {
+				this.strengthLoading = false;
+			}
+		}
+	}
 }
 
-const KEY = Symbol('password');
+type PasswordInputStateProps = WritableBoxedValues<{
+	value: string;
+}> &
+	ReadableBoxedValues<{
+		ref: HTMLInputElement | null;
+	}>;
 
-export const setPassword = (s: PasswordState) => setContext(KEY, s);
-export const getPassword = () => getContext<PasswordState>(KEY);
+class PasswordInputState {
+	constructor(
+		readonly root: PasswordRootState,
+		readonly opts: PasswordInputStateProps
+	) {
+		watch(
+			() => this.opts.value.current,
+			() => {
+				if (this.root.passwordState.value !== this.opts.value.current) {
+					this.root.passwordState.tainted = true;
+					this.root.passwordState.value = this.opts.value.current;
+					this.root.updateStrength();
+				}
+			}
+		);
+
+		$effect(() => {
+			if (!this.root.passwordState.strengthMounted) return;
+
+			// if the password is empty, we let the `required` attribute handle the validation
+			if (
+				this.root.passwordState.value !== '' &&
+				!this.root.strengthLoading &&
+				(this.root.strength?.score ?? 0) < this.root.opts.minScore.current
+			) {
+				this.opts.ref.current?.setCustomValidity('Password is too weak');
+			} else {
+				this.opts.ref.current?.setCustomValidity('');
+			}
+		});
+	}
+
+	props = $derived.by(() => ({
+		'aria-invalid':
+			!this.root.strengthLoading &&
+			(this.root.strength?.score ?? 0) < this.root.opts.minScore.current &&
+			this.root.passwordState.tainted &&
+			this.root.passwordState.strengthMounted
+	}));
+}
+
+class PasswordToggleVisibilityState {
+	constructor(readonly root: PasswordRootState) {
+		this.root.passwordState.toggleMounted = true;
+
+		// this way we go back to the correct padding when toggle is unmounted
+		$effect(() => {
+			return () => {
+				this.root.passwordState.toggleMounted = false;
+			};
+		});
+	}
+}
+
+class PasswordCopyState {
+	constructor(readonly root: PasswordRootState) {
+		this.root.passwordState.copyMounted = true;
+
+		// this way we go back to the correct padding when copy is unmounted
+		$effect(() => {
+			return () => {
+				this.root.passwordState.copyMounted = false;
+			};
+		});
+	}
+}
+
+type PasswordStrengthStateProps = WritableBoxedValues<{
+	strength: ZxcvbnResult | undefined;
+}>;
+
+class PasswordStrengthState {
+	constructor(
+		readonly root: PasswordRootState,
+		readonly opts: PasswordStrengthStateProps
+	) {
+		this.root.passwordState.strengthMounted = true;
+		this.root.updateStrength();
+
+		$effect(() => {
+			return () => {
+				this.root.passwordState.strengthMounted = false;
+				this.root.resetStrength();
+			};
+		});
+
+		watch(
+			() => this.root.strength,
+			(strength) => {
+				this.opts.strength.current = strength;
+			}
+		);
+	}
+}
+
+const ctx = new Context<PasswordRootState>('password-root-state');
+
+export function usePassword(props: PasswordRootStateProps) {
+	return ctx.set(new PasswordRootState(props));
+}
+
+export function usePasswordInput(props: PasswordInputStateProps) {
+	return new PasswordInputState(ctx.get(), props);
+}
+
+export function usePasswordToggleVisibility() {
+	return new PasswordToggleVisibilityState(ctx.get());
+}
+
+export function usePasswordCopy() {
+	return new PasswordCopyState(ctx.get());
+}
+
+export function usePasswordStrength(props: PasswordStrengthStateProps) {
+	return new PasswordStrengthState(ctx.get(), props);
+}

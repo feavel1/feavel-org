@@ -1,12 +1,34 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-	import { getImageCropper } from './image-cropper.svelte.js';
+	import Button, { type ButtonProps } from '../button.svelte';
+	import { useImageCropperCrop } from './image-cropper.svelte.js';
+	import CropIcon from '@lucide/svelte/icons/crop';
 
-	/** STUB — confirm the crop. */
-	let { children }: { children?: Snippet } = $props();
-	const state = getImageCropper();
+	let {
+		ref = $bindable(null),
+		variant = 'default',
+		size = 'sm',
+		onclick,
+		...rest
+	}: ButtonProps = $props();
+
+	const cropState = useImageCropperCrop();
 </script>
 
-<button type="button" data-image-cropper-crop onclick={() => state.crop()}>
-	{@render children?.()}
-</button>
+<Button
+	{...rest as /* eslint-disable-line @typescript-eslint/no-explicit-any */ any}
+	bind:ref
+	{size}
+	{variant}
+	onclick={(
+		e: MouseEvent & {
+			currentTarget: EventTarget & HTMLButtonElement;
+		}
+	) => {
+		onclick?.(e);
+
+		cropState.onclick();
+	}}
+>
+	<CropIcon />
+	<span>Crop</span>
+</Button>

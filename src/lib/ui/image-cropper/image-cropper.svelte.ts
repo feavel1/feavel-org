@@ -1,61 +1,167 @@
-import { getContext, setContext } from 'svelte';
-import { getCroppedImg, VALID_IMAGE_TYPES, type CropArea } from './utils';
+import type { ReadableBoxedValues, WritableBoxedValues } from 'svelte-toolbelt';
+import { Context } from 'runed';
+import type { CropArea, DispatchEvents } from 'svelte-easy-crop';
+import { getCroppedImg } from './utils';
 
-/**
- * STUB — this replaces the Ark UI + runed `Context` cropper state.
- * Implements the same public surface (open/tempUrl/pixelCrop + upload/cancel/crop).
- * Wire `Cropper` to any crop UI (svelte-easy-crop, bits-ui) that emits `CropArea`.
- */
-export class ImageCropperState {
-	#createdUrls: string[] = [];
-	src = $state('');
-	accept = $state('image/*');
+// https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/img#supported_image_formats
+export const VALID_IMAGE_TYPES = [
+	'image/apng',
+	'image/avif',
+	'image/gif',
+	'image/jpeg',
+	'image/png',
+	'image/svg+xml',
+	'image/webp'
+];
+
+export type ImageCropperRootProps = WritableBoxedValues<{
+	src: string;
+}> &
+	ReadableBoxedValues<{
+		id: string;
+		onCropped: (url: string) => void;
+		onUnsupportedFile: (file: File) => void;
+	}>;
+
+class ImageCropperRootState {
+	#createdUrls = $state<string[]>([]);
 	open = $state(false);
 	tempUrl = $state<string>();
 	pixelCrop = $state<CropArea>();
-	onCropped: (url: string) => void;
-	onUnsupportedFile: (file: File) => void;
 
-	constructor(opts: {
-		src: () => string;
-		accept?: () => string;
-		onCropped: (url: string) => void;
-		onUnsupportedFile: (file: File) => void;
-	}) {
-		this.onCropped = opts.onCropped;
-		this.onUnsupportedFile = opts.onUnsupportedFile;
-		if (opts.accept) this.accept = opts.accept();
+	constructor(readonly opts: ImageCropperRootProps) {
+		this.onUpload = this.onUpload.bind(this);
+		this.onCancel = this.onCancel.bind(this);
+		this.onCrop = this.onCrop.bind(this);
+		this.dispose = this.dispose.bind(this);
 	}
 
-	upload(file: File) {
+	onUpload(file: File) {
 		if (!VALID_IMAGE_TYPES.includes(file.type)) {
-			this.onUnsupportedFile(file);
+			this.opts.onUnsupportedFile.current(file);
 			return;
 		}
+
 		this.tempUrl = URL.createObjectURL(file);
 		this.#createdUrls.push(this.tempUrl);
 		this.open = true;
 	}
 
-	cancel() {
+	onCancel() {
 		this.tempUrl = undefined;
-		this.pixelCrop = undefined;
 		this.open = false;
+		this.pixelCrop = undefined;
 	}
 
-	async crop() {
+	async onCrop() {
 		if (!this.pixelCrop || !this.tempUrl) return;
-		this.src = await getCroppedImg(this.tempUrl, this.pixelCrop);
+
+		this.opts.src.current = await getCroppedImg(this.tempUrl, this.pixelCrop);
+
 		this.open = false;
-		this.onCropped(this.src);
+
+		this.opts.onCropped.current(this.opts.src.current);
+	}
+
+	get src() {
+		return this.opts.src.current;
+	}
+
+	get id() {
+		return this.opts.id.current;
 	}
 
 	dispose() {
-		for (const url of this.#createdUrls) URL.revokeObjectURL(url);
+		for (const url of this.#createdUrls) {
+			URL.revokeObjectURL(url);
+		}
 	}
 }
 
-const KEY = Symbol('image-cropper');
+export type ImageCropperTriggerProps = ReadableBoxedValues<{
+	id?: string;
+}>;
 
-export const setImageCropper = (state: ImageCropperState) => setContext(KEY, state);
-export const getImageCropper = () => getContext<ImageCropperState>(KEY);
+class ImageCropperTriggerState {
+	constructor(readonly rootState: ImageCropperRootState) {}
+}
+
+class ImageCropperPreviewState {
+	constructor(readonly rootState: ImageCropperRootState) {}
+}
+
+class ImageCropperDialogState {
+	constructor(readonly rootState: ImageCropperRootState) {}
+}
+
+class ImageCropperCropperState {
+	constructor(readonly rootState: ImageCropperRootState) {
+		this.onCropComplete = this.onCropComplete.bind(this);
+	}
+
+	onCropComplete(e: DispatchEvents['cropcomplete']) {
+		this.rootState.pixelCrop = e.pixels;
+	}
+}
+
+class ImageCropperCropState {
+	constructor(readonly rootState: ImageCropperRootState) {
+		this.onclick = this.onclick.bind(this);
+	}
+
+	onclick() {
+		this.rootState.onCrop();
+	}
+}
+
+class ImageCropperCancelState {
+	constructor(readonly rootState: ImageCropperRootState) {
+		this.onclick = this.onclick.bind(this);
+	}
+
+	onclick() {
+		this.rootState.onCancel();
+	}
+}
+
+const ImageCropperRootContext = new Context<ImageCropperRootState>('ImageCropper.Root');
+
+export const useImageCropperRoot = (props: ImageCropperRootProps) => {
+	return ImageCropperRootContext.set(new ImageCropperRootState(props));
+};
+
+export const useImageCropperTrigger = () => {
+	const rootState = ImageCropperRootContext.get();
+
+	return new ImageCropperTriggerState(rootState);
+};
+
+export const useImageCropperPreview = () => {
+	const rootState = ImageCropperRootContext.get();
+
+	return new ImageCropperPreviewState(rootState);
+};
+
+export const useImageCropperDialog = () => {
+	const rootState = ImageCropperRootContext.get();
+
+	return new ImageCropperDialogState(rootState);
+};
+
+export const useImageCropperCropper = () => {
+	const rootState = ImageCropperRootContext.get();
+
+	return new ImageCropperCropperState(rootState);
+};
+
+export const useImageCropperCrop = () => {
+	const rootState = ImageCropperRootContext.get();
+
+	return new ImageCropperCropState(rootState);
+};
+
+export const useImageCropperCancel = () => {
+	const rootState = ImageCropperRootContext.get();
+
+	return new ImageCropperCancelState(rootState);
+};

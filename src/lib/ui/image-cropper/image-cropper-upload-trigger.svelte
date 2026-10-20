@@ -1,18 +1,12 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-	import { getImageCropper } from './image-cropper.svelte.js';
+	import { useImageCropperTrigger } from './image-cropper.svelte.js';
+	import type { ImageCropperUploadTriggerProps } from './types';
 
-	/** STUB — wraps children in a file input trigger. */
-	let { children }: { children?: Snippet } = $props();
-	const state = getImageCropper();
+	let { ref = $bindable(null), children, ...rest }: ImageCropperUploadTriggerProps = $props();
 
-	function onchange(e: Event) {
-		const file = (e.currentTarget as HTMLInputElement).files?.[0];
-		if (file) state.upload(file);
-	}
+	const triggerState = useImageCropperTrigger();
 </script>
 
-<label data-image-cropper-upload>
+<label {...rest} bind:this={ref} for={triggerState.rootState.id} class="hover:cursor-pointer">
 	{@render children?.()}
-	<input type="file" accept={state.accept} class="sr-only" {onchange} />
 </label>

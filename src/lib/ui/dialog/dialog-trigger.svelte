@@ -1,10 +1,11 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { Dialog as DialogPrimitive } from 'bits-ui';
 
-	/** STUB — replace with shadcn-svelte. */
-	let { children, ...rest }: { children?: Snippet; [key: string]: unknown } = $props();
+	let {
+		ref = $bindable(null),
+		type = 'button',
+		...restProps
+	}: DialogPrimitive.TriggerProps = $props();
 </script>
 
-<button {...rest}>
-	{@render children?.()}
-</button>
+<DialogPrimitive.Trigger bind:ref data-slot="dialog-trigger" {type} {...restProps} />

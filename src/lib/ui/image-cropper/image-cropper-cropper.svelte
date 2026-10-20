@@ -1,18 +1,26 @@
 <script lang="ts">
-	import { getImageCropper } from './image-cropper.svelte.js';
+	import Cropper from 'svelte-easy-crop';
+	import { useImageCropperCropper } from './image-cropper.svelte.js';
+	import type { ImageCropperCropperProps } from './types.js';
 
-	/**
-	 * STUB — the real cropper UI is missing.
-	 * Install a crop library (svelte-easy-crop) and call
-	 * `state.pixelCrop = e.pixels` on its cropcomplete event.
-	 */
-	let { cropShape = 'round' }: { cropShape?: 'round' | 'rect' } = $props();
-	const state = getImageCropper();
+	let {
+		cropShape = 'round',
+		aspect = 1,
+		showGrid = false,
+		...rest
+	}: ImageCropperCropperProps = $props();
+
+	const cropperState = useImageCropperCropper();
 </script>
 
-<div data-image-cropper-cropper data-shape={cropShape}>
-	<img src={state.tempUrl} alt="To crop" class="max-h-64 w-full object-contain" />
-	<p class="text-xs text-muted-foreground">
-		Cropper UI not installed — see <code>docs/ui-migration.md</code>.
-	</p>
+<!-- This needs to be relative https://github.com/ValentinH/svelte-easy-crop#basic-usage -->
+<div class="relative h-full w-full">
+	<Cropper
+		{...rest}
+		{cropShape}
+		{aspect}
+		{showGrid}
+		image={cropperState.rootState.tempUrl}
+		oncropcomplete={cropperState.onCropComplete}
+	/>
 </div>

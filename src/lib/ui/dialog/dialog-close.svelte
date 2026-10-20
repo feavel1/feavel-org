@@ -1,10 +1,11 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { Dialog as DialogPrimitive } from 'bits-ui';
 
-	/** STUB — replace with shadcn-svelte. */
-	let { children, ...rest }: { children?: Snippet; [key: string]: unknown } = $props();
+	let {
+		ref = $bindable(null),
+		type = 'button',
+		...restProps
+	}: DialogPrimitive.CloseProps = $props();
 </script>
 
-<button {...rest}>
-	{@render children?.()}
-</button>
+<DialogPrimitive.Close bind:ref data-slot="dialog-close" {type} {...restProps} />

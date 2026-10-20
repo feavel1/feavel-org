@@ -1,14 +1,34 @@
-/**
- * STUB — replace with shadcn-svelte `dialog`.
- * Keeps the Ark UI export shape so call sites compile until the CLI runs:
- *   npx shadcn-svelte@latest add dialog
- */
-export { default as Root } from './dialog-root.svelte';
-export { default as Trigger } from './dialog-trigger.svelte';
-export { default as Content } from './dialog-content.svelte';
-export { default as Header } from './dialog-header.svelte';
-export { default as Footer } from './dialog-footer.svelte';
-export { default as Title } from './dialog-title.svelte';
-export { default as Description } from './dialog-description.svelte';
-export { default as Close } from './dialog-close.svelte';
-export { default as CloseX } from './dialog-close-x.svelte';
+import Root from './dialog.svelte';
+import Portal from './dialog-portal.svelte';
+import Title from './dialog-title.svelte';
+import Footer from './dialog-footer.svelte';
+import Header from './dialog-header.svelte';
+import Overlay from './dialog-overlay.svelte';
+import Content from './dialog-content.svelte';
+import Description from './dialog-description.svelte';
+import Trigger from './dialog-trigger.svelte';
+import Close from './dialog-close.svelte';
+
+export {
+	Root,
+	Title,
+	Portal,
+	Footer,
+	Header,
+	Trigger,
+	Overlay,
+	Content,
+	Description,
+	Close,
+	//
+	Root as Dialog,
+	Title as DialogTitle,
+	Portal as DialogPortal,
+	Footer as DialogFooter,
+	Header as DialogHeader,
+	Trigger as DialogTrigger,
+	Overlay as DialogOverlay,
+	Content as DialogContent,
+	Description as DialogDescription,
+	Close as DialogClose
+};

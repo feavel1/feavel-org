@@ -1,12 +1,34 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-	import { getImageCropper } from './image-cropper.svelte.js';
+	import Button, { type ButtonProps } from '../button.svelte';
+	import { useImageCropperCancel } from './image-cropper.svelte.js';
+	import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
-	/** STUB — dismiss the crop. */
-	let { children }: { children?: Snippet } = $props();
-	const state = getImageCropper();
+	let {
+		ref = $bindable(null),
+		variant = 'outline',
+		size = 'sm',
+		onclick,
+		...rest
+	}: ButtonProps = $props();
+
+	const cancelState = useImageCropperCancel();
 </script>
 
-<button type="button" data-image-cropper-cancel onclick={() => state.cancel()}>
-	{#if children}{@render children()}{:else}Cancel{/if}
-</button>
+<Button
+	{...rest as /* eslint-disable-line @typescript-eslint/no-explicit-any */ any}
+	bind:ref
+	{size}
+	{variant}
+	onclick={(
+		e: MouseEvent & {
+			currentTarget: EventTarget & HTMLButtonElement;
+		}
+	) => {
+		onclick?.(e);
+
+		cancelState.onclick();
+	}}
+>
+	<Trash2Icon />
+	<span>Cancel</span>
+</Button>
