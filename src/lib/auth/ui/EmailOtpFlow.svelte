@@ -143,7 +143,7 @@
 	<div class="flex flex-col gap-2">
 		<button
 			type="submit"
-			class="btn w-full preset-filled"
+			class="btn preset-filled w-full"
 			disabled={submitting || !otp.trim() || (mode === 'register' && !name.trim())}
 		>
 			{#if submitting}

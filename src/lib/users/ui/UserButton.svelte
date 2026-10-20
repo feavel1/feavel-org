@@ -102,7 +102,7 @@
 	>
 		<Popover.Trigger class="flex size-10 items-center justify-center rounded-full">
 			<Avatar.Root
-				class="size-9 ring-0 ring-surface-100-900 duration-200 ease-out ring-inset hover:ring-4"
+				class="ring-surface-100-900 size-9 ring-0 duration-200 ease-out ring-inset hover:ring-4"
 				onStatusChange={(details) => (avatarStatus = details.status)}
 			>
 				<Avatar.Image src={activeUser?.image} alt={activeUser?.name} />
@@ -118,7 +118,7 @@
 		<Popover.Content>
 			<div class="flex flex-col gap-1 p-0">
 				<button
-					class="flex flex-row items-center gap-4 rounded-container bg-surface-50-950 p-3 pr-6 duration-200 ease-in-out hover:bg-surface-100-900"
+					class="rounded-container bg-surface-50-950 hover:bg-surface-100-900 flex flex-row items-center gap-4 p-3 pr-6 duration-200 ease-in-out"
 					onclick={openProfileModal}
 				>
 					<Avatar.Root class="size-12">
@@ -137,7 +137,7 @@
 				</button>
 				<SignOutButton
 					onSuccess={() => (userPopoverOpen = false)}
-					class="preset-faded-surface-50-950 btn h-10 justify-between gap-1 text-sm hover:bg-surface-200-800"
+					class="preset-faded-surface-50-950 btn hover:bg-surface-200-800 h-10 justify-between gap-1 text-sm"
 				/>
 			</div>
 		</Popover.Content>
@@ -164,7 +164,7 @@
 	}}
 >
 	<Dialog.Content
-		class="h-full max-h-dvh w-full rounded-none sm:h-auto sm:max-h-[90vh] sm:w-4xl sm:max-w-md sm:rounded-container"
+		class="sm:rounded-container h-full max-h-dvh w-full rounded-none sm:h-auto sm:max-h-[90vh] sm:w-4xl sm:max-w-md"
 	>
 		{#key signInKey}
 			<SignIn onSignIn={() => (signInDialogOpen = false)} class="p-2 sm:p-8" />

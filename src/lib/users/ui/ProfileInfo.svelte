@@ -174,21 +174,21 @@
 
 <div class="flex flex-col gap-6">
 	{#if !activeUser}
-		<div class="h-16 placeholder w-full animate-pulse"></div>
+		<div class="placeholder h-16 w-full animate-pulse"></div>
 	{:else}
 		<!-- Avatar + Upload via ImageCropper (rounded crop) -->
-		<div class="flex items-center justify-start rounded-base pt-6 pl-0.5">
+		<div class="rounded-base flex items-center justify-start pt-6 pl-0.5">
 			<ImageCropper.Root bind:src={cropSrc} accept="image/*" onCropped={handleCropped}>
 				<ImageCropper.UploadTrigger>
 					<div
-						class="relative size-20 cursor-pointer rounded-container transition-all duration-200"
+						class="rounded-container relative size-20 cursor-pointer transition-all duration-200"
 					>
 						<div class="relative cursor-pointer transition-colors">
 							{#key avatarKey}
 								<Avatar.Root class="size-20" onStatusChange={(e) => (loadingStatus = e.status)}>
 									<Avatar.Image src={displayedAvatarSrc} alt={activeUser.name} />
 									<Avatar.Fallback
-										class="rounded-container bg-surface-300-700 duration-150 ease-in-out hover:bg-surface-400-600/80"
+										class="rounded-container bg-surface-300-700 hover:bg-surface-400-600/80 duration-150 ease-in-out"
 									>
 										<Avatar.Marble name={activeUser.name} />
 									</Avatar.Fallback>
@@ -197,7 +197,7 @@
 
 							{#if showAvatarOverlay}
 								<div
-									class="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-surface-50-950"
+									class="bg-surface-50-950 pointer-events-none absolute inset-0 flex items-center justify-center rounded-full"
 								>
 									<div
 										class="h-6 w-6 animate-spin rounded-full border-2 border-white border-b-transparent"
@@ -206,7 +206,7 @@
 							{/if}
 
 							<div
-								class="absolute -right-1.5 -bottom-1.5 badge-icon size-3 rounded-full preset-filled-surface-300-700 ring-4 ring-surface-50-950 hover:bg-surface-400-600 dark:ring-surface-100-900"
+								class="preset-filled-surface-300-700 ring-surface-50-950 hover:bg-surface-400-600 dark:ring-surface-100-900 absolute -right-1.5 -bottom-1.5 flex size-3 items-center justify-center rounded-full ring-4"
 							>
 								<PencilIcon class="size-4" />
 							</div>
@@ -226,7 +226,7 @@
 		<!-- Inline editable name -->
 		<div
 			class={[
-				'relative w-full rounded-container border border-surface-300-700 px-3.5 py-2 transition-all duration-200 ease-in-out',
+				'rounded-container border-surface-300-700 relative w-full border px-3.5 py-2 transition-all duration-200 ease-in-out',
 				{
 					'cursor-pointer': !isEditingName,
 					'hover:bg-surface-200-800': !isEditingName,
@@ -236,7 +236,7 @@
 		>
 			<div class="flex items-center justify-between gap-3 transition-all duration-200 ease-in-out">
 				<div class="flex w-full flex-col">
-					<span class="text-xs text-surface-600-400">Name</span>
+					<span class="text-surface-600-400 text-xs">Name</span>
 					<!-- View mode (collapses when editing) -->
 					<div
 						class={[
@@ -268,7 +268,7 @@
 								<div class="mb-1 flex gap-1.5">
 									<button
 										type="button"
-										class="btn btn-sm w-full preset-tonal"
+										class="btn btn-sm preset-tonal w-full"
 										onclick={() => {
 											name = activeUser.name;
 											isEditingName = false;
@@ -278,7 +278,7 @@
 									</button>
 									<button
 										type="submit"
-										class="btn btn-sm w-full preset-filled-primary-500"
+										class="btn btn-sm preset-filled-primary-500 w-full"
 										disabled={!name || name.trim() === '' || name.trim() === activeUser.name.trim()}
 									>
 										Save
@@ -291,7 +291,7 @@
 				<!-- Edit affordance and full-area overlay button in view mode -->
 				{#if !isEditingName}
 					<div>
-						<span class="pointer-events-none btn-icon preset-filled-surface-50-950 p-2">
+						<span class="btn-icon preset-filled-surface-50-950 pointer-events-none p-2">
 							<PencilIcon class="size-4" />
 						</span>
 					</div>

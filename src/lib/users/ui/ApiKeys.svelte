@@ -233,7 +233,7 @@
 </script>
 
 <div class="flex w-full flex-col gap-3 pb-6">
-	<span class="text-xs text-surface-600-400">API Keys</span>
+	<span class="text-surface-600-400 text-xs">API Keys</span>
 	<!-- List api keys with name, creation data, expiry data -->
 	{#if apiKeysData}
 		{#if apiKeys.length > 0}
@@ -400,12 +400,12 @@
 					<Dialog.Title>Your new API key</Dialog.Title>
 				</Dialog.Header>
 				<p class="text-sm">Copy and store this key now. You won’t be able to see it again.</p>
-				<div class="input-group mt-4 grid-cols-[1fr_auto]">
-					<input class="ig-input" readonly value={newKey} />
+				<div class="mt-4 flex items-stretch gap-2">
+					<input class="input flex-1 font-mono" readonly value={newKey} />
 					<Toggle.Root
 						bind:pressed={copied}
 						onclick={handleCopyClick}
-						class="ig-btn preset-filled-surface-200-800"
+						class="btn preset-filled-surface-200-800 shrink-0"
 						aria-label="Copy API key"
 					>
 						{#if copied}

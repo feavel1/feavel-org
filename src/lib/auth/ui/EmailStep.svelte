@@ -96,7 +96,7 @@
 		<button
 			type="button"
 			onclick={() => handleMethodClick(availableMethods[0])}
-			class="btn w-full preset-filled"
+			class="btn preset-filled w-full"
 			disabled={submitting || validatingEmail || !email}
 		>
 			{#if validatingEmail}
@@ -117,7 +117,7 @@
 				<button
 					type="button"
 					onclick={() => handleMethodClick('password')}
-					class="btn w-full preset-filled"
+					class="btn preset-filled w-full"
 					disabled={submitting || validatingEmail || !email}
 				>
 					{#if validatingEmail && validatingEmailMethod === 'password'}
@@ -137,7 +137,7 @@
 				<button
 					type="button"
 					onclick={() => handleMethodClick('emailOTP')}
-					class="btn w-full preset-tonal"
+					class="btn preset-tonal w-full"
 					disabled={submitting || validatingEmail || !email}
 				>
 					{#if validatingEmail && validatingEmailMethod === 'emailOTP'}
@@ -157,7 +157,7 @@
 				<button
 					type="button"
 					onclick={() => handleMethodClick('magicLink')}
-					class="btn w-full preset-tonal"
+					class="btn preset-tonal w-full"
 					disabled={submitting || validatingEmail || !email}
 				>
 					{#if validatingEmail && validatingEmailMethod === 'magicLink'}

@@ -12,10 +12,9 @@
 
 	let { api, authClient, authConstants, children }: AuthProviderProps = $props();
 
-	// Inject context for all descendant components (static config — never changes per request)
+	// Inject context for all descendant components (static config — never changes per request).
 	// svelte-ignore state_referenced_locally
-	const ctx: AuthContext = { api, authClient, authConstants };
-	setAuthContext(ctx);
+	setAuthContext({ api, authClient, authConstants });
 </script>
 
 {#if children}

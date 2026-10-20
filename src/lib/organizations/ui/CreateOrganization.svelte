@@ -212,20 +212,20 @@
 <!-- Show loading state -->
 {#if isLoading}
 	<div class="mx-auto w-full max-w-md animate-pulse">
-		<div class="mb-4 h-8 placeholder w-full"></div>
-		<div class="mb-4 h-40 placeholder w-full"></div>
-		<div class="mb-2 h-10 placeholder w-full"></div>
-		<div class="h-10 placeholder w-full"></div>
+		<div class="placeholder mb-4 h-8 w-full"></div>
+		<div class="placeholder mb-4 h-40 w-full"></div>
+		<div class="placeholder mb-2 h-10 w-full"></div>
+		<div class="placeholder h-10 w-full"></div>
 	</div>
 
 	<!-- Show message for unauthenticated users -->
 {:else if !isAuthenticated}
 	<div
-		class="mx-auto w-full max-w-md rounded-container border border-surface-200-800 p-6 text-center"
+		class="rounded-container border-surface-200-800 mx-auto w-full max-w-md border p-6 text-center"
 	>
-		<LogInIcon class="mx-auto mb-4 size-10 text-surface-400-600" />
+		<LogInIcon class="text-surface-400-600 mx-auto mb-4 size-10" />
 		<h2 class="mb-2 text-xl font-semibold">Authentication Required</h2>
-		<p class="mb-4 text-surface-600-400">Please sign in to create an organization</p>
+		<p class="text-surface-600-400 mb-4">Please sign in to create an organization</p>
 	</div>
 
 	<!-- Show the form for authenticated users -->
@@ -235,18 +235,18 @@
 			<ImageCropper.Root bind:src={cropSrc} accept="image/*" onCropped={handleCropped}>
 				<ImageCropper.UploadTrigger>
 					<div
-						class="relative size-20 cursor-pointer rounded-container transition-all duration-200"
+						class="rounded-container relative size-20 cursor-pointer transition-all duration-200"
 					>
-						<Avatar.Root class="size-20 rounded-container">
+						<Avatar.Root class="rounded-container size-20">
 							<Avatar.Image src={logo} alt={name.length > 0 ? name : 'My Organization'} />
 							<Avatar.Fallback
-								class="rounded-container bg-surface-300-700 duration-150 ease-in-out hover:bg-surface-400-600/80"
+								class="rounded-container bg-surface-300-700 hover:bg-surface-400-600/80 duration-150 ease-in-out"
 							>
-								<Building2Icon class="size-10 text-surface-700-300" />
+								<Building2Icon class="text-surface-700-300 size-10" />
 							</Avatar.Fallback>
 						</Avatar.Root>
 						<div
-							class="absolute -right-1.5 -bottom-1.5 badge-icon size-3 rounded-full preset-filled-surface-300-700 ring-4 ring-surface-50-950 dark:ring-surface-100-900"
+							class="preset-filled-surface-300-700 ring-surface-50-950 dark:ring-surface-100-900 absolute -right-1.5 -bottom-1.5 flex size-3 items-center justify-center rounded-full ring-4"
 						>
 							<PencilIcon class="size-4" />
 						</div>

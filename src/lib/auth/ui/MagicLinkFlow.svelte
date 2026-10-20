@@ -95,7 +95,7 @@
 		/>
 	</div>
 
-	<button type="submit" class="btn w-full preset-filled" disabled={submitting || !name.trim()}>
+	<button type="submit" class="btn preset-filled w-full" disabled={submitting || !name.trim()}>
 		{#if submitting}
 			<div class="flex items-center gap-2">
 				<div

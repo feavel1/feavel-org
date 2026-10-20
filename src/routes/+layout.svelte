@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import './layout.css';
+	import '../app.css';
 	import favicon from '#lib/assets/favicon.svg';
 
 	import { createSvelteAuthClient } from '@mmailaender/convex-better-auth-svelte/svelte';
 	import { authClient } from '#lib/auth/api/auth-client.js';
 	import { api } from '#convex/_generated/api.js';
 	import { AUTH_CONSTANTS } from '#convex/auth.constants.js';
+	import { PUBLIC_CONVEX_URL } from '$app/env/public';
 
 	import { Toaster } from '#lib/ui/sonner/index.js';
 	import OrganizationSwitcher from '#lib/organizations/ui/OrganizationSwitcher.svelte';
@@ -17,7 +18,11 @@
 
 	let { children, data } = $props();
 
-	createSvelteAuthClient({ authClient, getServerState: () => data.authState });
+	createSvelteAuthClient({
+		authClient,
+		convexUrl: PUBLIC_CONVEX_URL,
+		getServerState: () => data.authState
+	});
 </script>
 
 <svelte:head>

@@ -192,7 +192,7 @@
 		<div class="flex flex-shrink-0 items-center gap-3 py-4">
 			<div class="relative flex-1">
 				<div class="pointer-events-none absolute inset-y-0 flex items-center">
-					<SearchIcon class="size-4 text-surface-400-600" />
+					<SearchIcon class="text-surface-400-600 size-4" />
 				</div>
 				<input
 					type="text"
@@ -208,8 +208,8 @@
 			<div class="flex max-h-[calc(100vh-12rem)] flex-col gap-2 overflow-y-auto pb-24">
 				{#each filteredMembers as member (member.id)}
 					<div
-						class={`flex items-center justify-between rounded-container border-b border-surface-200-800 pr-6 pb-4 ${
-							canEditMember(member) ? 'cursor-pointer hover:bg-surface-100-900' : ''
+						class={`rounded-container border-surface-200-800 flex items-center justify-between border-b pr-6 pb-4 ${
+							canEditMember(member) ? 'hover:bg-surface-100-900 cursor-pointer' : ''
 						}`}
 						onclick={() => handleMemberCardClick(member)}
 						role="button"
@@ -236,20 +236,20 @@
 									<span class="font-medium">{member.user.name}</span>
 									{#if member.role === 'owner'}
 										<span
-											class="badge h-6 border border-primary-200-800 preset-filled-primary-50-950 px-2"
+											class="badge border-primary-200-800 preset-filled-primary-50-950 h-6 border px-2"
 										>
 											Owner
 										</span>
 									{/if}
 									{#if member.role === 'admin'}
 										<span
-											class="badge h-6 border border-warning-200-800 preset-filled-warning-50-950 px-2"
+											class="badge border-warning-200-800 preset-filled-warning-50-950 h-6 border px-2"
 										>
 											Admin
 										</span>
 									{/if}
 								</div>
-								<span class="text-sm text-surface-700-300">{member.user.email}</span>
+								<span class="text-surface-700-300 text-sm">{member.user.email}</span>
 							</div>
 						</div>
 						{#if canEditMember(member)}
@@ -270,11 +270,11 @@
 					<table class="table w-full !table-fixed">
 						<thead class="sticky top-0 z-20">
 							<tr>
-								<th class="!w-48 p-2 !pl-3 text-left text-xs font-semibold text-surface-600-400"
+								<th class="text-surface-600-400 !w-48 p-2 !pl-3 text-left text-xs font-semibold"
 									>Name</th
 								>
-								<th class="hidden p-2 text-left text-xs text-surface-600-400 sm:flex">Email</th>
-								<th class="!w-32 p-2 text-left text-xs text-surface-600-400">Role</th>
+								<th class="text-surface-600-400 hidden p-2 text-left text-xs sm:flex">Email</th>
+								<th class="text-surface-600-400 !w-32 p-2 text-left text-xs">Role</th>
 								{#if isOwnerOrAdmin}
 									<th class="!w-16 p-2 text-right"></th>
 								{/if}
@@ -282,7 +282,7 @@
 						</thead>
 						<tbody>
 							{#each filteredMembers as member (member.id)}
-								<tr class="!border-t !border-surface-300-700">
+								<tr class="!border-surface-300-700 !border-t">
 									<!-- Member Name -->
 									<td class="!w-48 !max-w-48 !truncate !py-3 !pl-3">
 										<div class="flex items-center space-x-2">
@@ -300,14 +300,14 @@
 											<div class="flex flex-col truncate">
 												<span class="truncate text-sm">{member.user.name}</span>
 												<!-- Email visible only on mobile (hidden on sm and above) -->
-												<span class="truncate text-xs text-surface-700-300 sm:hidden">
+												<span class="text-surface-700-300 truncate text-xs sm:hidden">
 													{member.user.email}
 												</span>
 											</div>
 										</div>
 									</td>
 									<!-- Member Email -->
-									<td class="hidden !h-fit !w-full !truncate !text-surface-600-400 sm:table-cell">
+									<td class="!text-surface-600-400 hidden !h-fit !w-full !truncate sm:table-cell">
 										{member.user.email}
 									</td>
 									<!-- Member Role -->
@@ -333,19 +333,19 @@
 												</Select.Root>
 											{:else if member.role === 'owner'}
 												<span
-													class="badge h-7 border border-primary-200-800 preset-filled-primary-50-950 px-2"
+													class="badge border-primary-200-800 preset-filled-primary-50-950 h-7 border px-2"
 												>
 													Owner
 												</span>
 											{:else if member.role === 'admin'}
 												<span
-													class="badge h-7 border border-warning-200-800 preset-filled-warning-50-950 px-2"
+													class="badge border-warning-200-800 preset-filled-warning-50-950 h-7 border px-2"
 												>
 													Admin
 												</span>
 											{:else}
 												<span
-													class="badge h-7 border border-surface-400-600 preset-filled-surface-300-700 px-2"
+													class="badge border-surface-400-600 preset-filled-surface-300-700 h-7 border px-2"
 												>
 													Member
 												</span>
@@ -422,7 +422,7 @@
 							</div>
 							<div class="flex flex-col">
 								<span>{selectedMember.user.name}</span>
-								<p class="text-sm text-surface-700-300">{selectedMember.user.email}</p>
+								<p class="text-surface-700-300 text-sm">{selectedMember.user.email}</p>
 							</div>
 						</div>
 

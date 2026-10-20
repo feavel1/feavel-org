@@ -140,7 +140,7 @@
 {#if activeOrganization && members && members.length > 1}
 	<Dialog.Root bind:open={isOpen}>
 		<Dialog.Trigger
-			class="preset-faded-surface-50-950 btn btn-sm w-fit justify-between gap-1 text-sm text-surface-600-400 hover:bg-error-300-700 hover:text-error-950-50"
+			class="preset-faded-surface-50-950 btn btn-sm text-surface-600-400 hover:bg-error-300-700 hover:text-error-950-50 w-fit justify-between gap-1 text-sm"
 		>
 			Leave organization
 		</Dialog.Trigger>

@@ -6,7 +6,7 @@
 	import { resolve } from '$app/paths';
 
 	// Auth
-	import { authClient } from '../../../../../lib/auth/api/auth-client';
+	import { authClient } from '#lib/auth/api/auth-client.js';
 
 	// Icons
 	import CheckCircle2Icon from '@lucide/svelte/icons/check-circle-2';
@@ -56,7 +56,7 @@
 </script>
 
 <div class="flex min-h-dvh items-center justify-center p-6">
-	<div class="w-full max-w-md card p-8 text-center">
+	<div class="card w-full max-w-md p-8 text-center">
 		{#if isLoading}
 			<div class="flex flex-col items-center gap-4">
 				<Loader2Icon class="size-10 animate-spin" />

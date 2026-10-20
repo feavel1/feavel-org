@@ -12,7 +12,7 @@
 	import AlertTriangleIcon from '@lucide/svelte/icons/alert-triangle';
 
 	// API
-	import { authClient } from '../../../lib/auth/api/auth-client';
+	import { authClient } from '#lib/auth/api/auth-client.js';
 	import { onMount } from 'svelte';
 
 	type ResetState = 'loading' | 'valid-token' | 'invalid-token' | 'error';
@@ -101,11 +101,11 @@
 <div class="flex h-screen w-full flex-col items-center justify-center">
 	<div class="flex h-full w-full max-w-md flex-col p-8">
 		<div class="mb-4">
-			<h1 class="w-full text-left h5 leading-8">
+			<h1 class="h5 w-full text-left leading-8">
 				{resetState === 'valid-token' ? 'Reset your password' : 'Invalid or Expired Link'}
 			</h1>
 			{#if resetState === 'valid-token'}
-				<p class="mt-2 max-w-96 text-left text-sm text-surface-600-400">
+				<p class="text-surface-600-400 mt-2 max-w-96 text-left text-sm">
 					Enter your new password below.
 				</p>
 			{/if}
@@ -117,12 +117,12 @@
 					<div
 						class="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent"
 					></div>
-					<p class="text-sm text-surface-600-400">Verifying reset link...</p>
+					<p class="text-surface-600-400 text-sm">Verifying reset link...</p>
 				</div>
 			{:else if resetState === 'invalid-token'}
 				<div class="flex flex-col gap-6">
 					<div>
-						<p class="mt-2 text-sm text-surface-600-400">
+						<p class="text-surface-600-400 mt-2 text-sm">
 							This password reset link is invalid or has expired.
 							<br />
 							Please request a new password reset link.
@@ -166,7 +166,7 @@
 					</div>
 
 					<div class="flex flex-col gap-2">
-						<button type="submit" class="btn w-full preset-filled" disabled={isSubmitting}>
+						<button type="submit" class="btn preset-filled w-full" disabled={isSubmitting}>
 							{#if isSubmitting}
 								<div class="flex items-center gap-2">
 									<div
@@ -189,8 +189,8 @@
 						<AlertTriangleIcon class="size-6" />
 					</div>
 					<div class="text-center">
-						<h2 class="text-xl font-semibold text-surface-950-50">Something went wrong</h2>
-						<p class="mt-2 text-sm text-surface-600-400">
+						<h2 class="text-surface-950-50 text-xl font-semibold">Something went wrong</h2>
+						<p class="text-surface-600-400 mt-2 text-sm">
 							There was an error resetting your password.
 							<br />
 							Please try again or request a new reset link.

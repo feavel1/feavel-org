@@ -299,8 +299,8 @@
 	<!-- Desktop Layout -->
 	<div class="hidden h-full w-full md:flex">
 		<!-- Desktop Navigation -->
-		<div class="h-full w-56 bg-surface-50 p-2 sm:bg-surface-300-700 dark:bg-surface-800">
-			<div class="p-3 pt-2 text-xs font-medium text-surface-600-400">Organization</div>
+		<div class="sm:bg-surface-300-700 h-full w-56 bg-surface-50 p-2 dark:bg-surface-800">
+			<div class="text-surface-600-400 p-3 pt-2 text-xs font-medium">Organization</div>
 			<Tabs.List class="flex flex-col">
 				{#each visibleTabs as tab (tab.value)}
 					<Tabs.Trigger value={tab.value} class="gap-2 pl-2">
@@ -317,7 +317,7 @@
 		<div class="flex w-full">
 			<Tabs.Content value="general" class="w-ful flex h-full flex-col">
 				<div class="h-full">
-					<h6 class=" pb-6 text-left h6">General settings</h6>
+					<h6 class=" h6 pb-6 text-left">General settings</h6>
 					<GeneralSettings {initialData} />
 				</div>
 				<div>
@@ -329,11 +329,11 @@
 
 			{#if isOwnerOrAdmin}
 				<Tabs.Content value="members">
-					<h6 class="pb-6 text-left h6">Members</h6>
+					<h6 class="h6 pb-6 text-left">Members</h6>
 					<MembersAndInvitations {initialData} />
 				</Tabs.Content>
 				<Tabs.Content value="billing">
-					<h6 class="pb-6 text-left h6">Billing</h6>
+					<h6 class="h6 pb-6 text-left">Billing</h6>
 				</Tabs.Content>
 			{/if}
 		</div>
@@ -347,13 +347,13 @@
 		>
 			<!-- Mobile Navigation (left half) -->
 			<div
-				class="relative h-full w-1/2 bg-surface-100 p-2 sm:bg-surface-300-700 dark:bg-surface-900"
+				class="sm:bg-surface-300-700 relative h-full w-1/2 bg-surface-100 p-2 dark:bg-surface-900"
 				class:hidden={closingFromContent}
 			>
-				<div class="px-3 pt-3 pb-8 h5">Organization settings</div>
+				<div class="h5 px-3 pt-3 pb-8">Organization settings</div>
 				<!-- Close button (close entire modal) shown on list view for ideal fade-out -->
 				<button
-					class="absolute top-5 right-4 z-10 rounded-base p-2 opacity-70 ring-offset-background transition-opacity hover:bg-surface-300-700 hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+					class="rounded-base hover:bg-surface-300-700 absolute top-5 right-4 z-10 p-2 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
 					onclick={closeFromContent}
 					aria-label="Close organization profile"
 					type="button"
@@ -368,7 +368,7 @@
 							class=" flex w-full items-center justify-between gap-3 aria-selected:bg-transparent aria-selected:text-inherit"
 						>
 							<div
-								class="flex size-8 shrink-0 items-center justify-center rounded-base bg-surface-300-700"
+								class="rounded-base bg-surface-300-700 flex size-8 shrink-0 items-center justify-center"
 							>
 								<tab.icon />
 							</div>
@@ -377,7 +377,7 @@
 						</Tabs.Trigger>
 						{#if index < visibleTabs.length - 1}
 							<div class="flex h-2 w-full items-center justify-center px-3">
-								<hr class="w-full border border-surface-200-800" />
+								<hr class="border-surface-200-800 w-full border" />
 							</div>
 						{/if}
 					{/each}
@@ -390,7 +390,7 @@
 			>
 				<!-- Back button (go back to tabs list) -->
 				<button
-					class="absolute top-5 left-4 z-10 rounded-base p-2 opacity-70 ring-offset-background transition-opacity hover:bg-surface-300-700 hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+					class="rounded-base hover:bg-surface-300-700 absolute top-5 left-4 z-10 p-2 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
 					onclick={closeMobileTab}
 					aria-label="Go back to organization settings menu"
 				>
@@ -399,7 +399,7 @@
 
 				{#if activeMobileTab === 'general'}
 					<div class="h-full">
-						<h6 class="pb-12 pl-10 h6">General settings</h6>
+						<h6 class="h6 pb-12 pl-10">General settings</h6>
 						<GeneralSettings {initialData} />
 					</div>
 
@@ -407,10 +407,10 @@
 
 					<LeaveOrganization {initialData} />
 				{:else if activeMobileTab === 'members'}
-					<h6 class="pb-6 pl-10 h6">Members</h6>
+					<h6 class="h6 pb-6 pl-10">Members</h6>
 					<MembersAndInvitations {initialData} />
 				{:else if activeMobileTab === 'billing'}
-					<h6 class="pb-6 pl-10 h6">Billing</h6>
+					<h6 class="h6 pb-6 pl-10">Billing</h6>
 				{/if}
 			</div>
 		</div>

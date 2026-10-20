@@ -189,7 +189,7 @@
 				{#if nameErrorMessage}
 					<span
 						id="name-error"
-						class="pt-1 pb-1 text-xs text-error-600-400"
+						class="text-error-600-400 pt-1 pb-1 text-xs"
 						aria-live="polite"
 						role="status"
 					>
@@ -221,7 +221,7 @@
 				<div class="flex flex-row items-center justify-end pt-1">
 					<button
 						type="button"
-						class="mb-1 shrink-0 anchor text-xs"
+						class="anchor mb-1 shrink-0 text-xs"
 						onclick={handleForgotPassword}
 						disabled={submitting || isRequestingReset}
 					>
@@ -234,7 +234,7 @@
 
 	<!-- Actions -->
 	<div class="flex flex-col gap-2">
-		<button type="submit" class="btn w-full preset-filled" disabled={submitting}>
+		<button type="submit" class="btn preset-filled w-full" disabled={submitting}>
 			{#if submitting}
 				<div class="flex items-center gap-2">
 					<div

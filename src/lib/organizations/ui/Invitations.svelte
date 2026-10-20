@@ -122,7 +122,7 @@
 {#if !invitationList}
 	<div>Loading invitations...</div>
 {:else if filteredInvitations.length === 0 && !searchQuery}
-	<div class="p-8 text-center text-surface-600-400">
+	<div class="text-surface-600-400 p-8 text-center">
 		<p>No pending invitations.</p>
 	</div>
 {:else}
@@ -131,7 +131,7 @@
 		<div class="flex flex-shrink-0 items-center gap-3 py-4">
 			<div class="relative flex-1">
 				<div class="pointer-events-none absolute inset-y-0 flex items-center">
-					<SearchIcon class="size-4 text-surface-400-600" />
+					<SearchIcon class="text-surface-400-600 size-4" />
 				</div>
 				<input
 					type="text"
@@ -146,7 +146,7 @@
 		<!-- Table Section - Scrollable area -->
 		<div class="min-h-0 flex-1">
 			{#if filteredInvitations.length === 0 && searchQuery}
-				<div class="p-8 text-center text-surface-600-400">
+				<div class="text-surface-600-400 p-8 text-center">
 					<p>No invitations match your search.</p>
 				</div>
 			{:else}
@@ -156,13 +156,13 @@
 						class="max-h-[calc(90vh-12rem)] overflow-y-auto pb-12 sm:max-h-[calc(80vh-12rem)] md:max-h-[calc(70vh-12rem)]"
 					>
 						<table class="table w-full !table-fixed">
-							<thead class="sticky top-0 z-20 border-b border-surface-300-700">
+							<thead class="border-surface-300-700 sticky top-0 z-20 border-b">
 								<tr>
-									<th class="w-64 truncate p-2 !pl-0 text-left text-xs text-surface-700-300">
+									<th class="text-surface-700-300 w-64 truncate p-2 !pl-0 text-left text-xs">
 										User
 									</th>
-									<th class="w-32 p-2 !pl-0 text-left text-xs text-surface-700-300"> Expires </th>
-									<th class="hidden w-32 p-2 text-left text-xs text-surface-700-300 sm:table-cell">
+									<th class="text-surface-700-300 w-32 p-2 !pl-0 text-left text-xs"> Expires </th>
+									<th class="text-surface-700-300 hidden w-32 p-2 text-left text-xs sm:table-cell">
 										Role
 									</th>
 									{#if isOwnerOrAdmin}
@@ -172,7 +172,7 @@
 							</thead>
 							<tbody>
 								{#each filteredInvitations as invitation (invitation.id)}
-									<tr class="!border-t !border-surface-300-700">
+									<tr class="!border-surface-300-700 !border-t">
 										<!-- User -->
 										<td class="!w-64 !max-w-64 !truncate !py-3 !pl-0">
 											<span class="truncate font-medium">{invitation.email}</span>
@@ -184,23 +184,23 @@
 											</span>
 										</td>
 										<!-- Role -->
-										<td class="hidden !w-32 !text-surface-700-300 sm:table-cell">
+										<td class="!text-surface-700-300 hidden !w-32 sm:table-cell">
 											<div class="flex items-center">
 												{#if invitation.role === 'owner'}
 													<span
-														class="badge h-6 border border-primary-200-800 preset-filled-primary-50-950 px-2"
+														class="badge border-primary-200-800 preset-filled-primary-50-950 h-6 border px-2"
 													>
 														Owner
 													</span>
 												{:else if invitation.role === 'admin'}
 													<span
-														class="badge h-6 border border-warning-200-800 preset-filled-warning-50-950 px-2"
+														class="badge border-warning-200-800 preset-filled-warning-50-950 h-6 border px-2"
 													>
 														Admin
 													</span>
 												{:else}
 													<span
-														class="badge h-6 border border-surface-400-600 preset-filled-surface-300-700 px-2"
+														class="badge border-surface-400-600 preset-filled-surface-300-700 h-6 border px-2"
 													>
 														Member
 													</span>
