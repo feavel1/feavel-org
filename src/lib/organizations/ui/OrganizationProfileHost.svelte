@@ -135,12 +135,12 @@
 {#if isAuthenticated && !suppressDialogRender}
 	<Dialog.Root
 		bind:open={orgProfile.open}
-		onOpenChange={(status) => {
-			if (!status.open) closeProfileModal();
+		onOpenChange={(open: boolean) => {
+			if (!open) closeProfileModal();
 		}}
 	>
 		<Dialog.Content
-			class={`md:rounded-container top-0 left-0 h-full max-h-[100dvh] w-full max-w-full translate-x-0 translate-y-0 rounded-none p-0 md:top-1/2 md:left-1/2 md:h-[70vh] md:w-2xl md:-translate-x-1/2 md:-translate-y-1/2 lg:w-4xl ${orgProfile.suppressTransition ? 'animate-none transition-none duration-0 data-[state=closed]:duration-0 data-[state=open]:duration-0' : ''}`}
+			class={`org-sheet top-0 left-0 h-full max-h-[100dvh] w-full max-w-full translate-x-0 translate-y-0 rounded-none p-0 sm:max-w-none md:top-1/2 md:left-1/2 md:h-auto md:max-h-[82vh] md:w-[46rem] md:max-w-[92vw] md:-translate-x-1/2 md:-translate-y-1/2 ${orgProfile.suppressTransition ? 'animate-none transition-none duration-0' : ''}`}
 		>
 			<div
 				class="h-full w-full overflow-auto overscroll-contain"
@@ -169,7 +169,6 @@
 					{initialData}
 				/>
 			</div>
-			<Dialog.CloseX />
 		</Dialog.Content>
 	</Dialog.Root>
 {/if}

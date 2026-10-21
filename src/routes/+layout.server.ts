@@ -6,6 +6,7 @@ import type { LayoutServerLoad } from './$types';
 import { api } from '#convex/_generated/api.js';
 import { AUTH_CONSTANTS } from '#convex/auth.constants.js';
 import { building } from '$app/env';
+import { PUBLIC_CONVEX_URL } from '$app/env/public';
 
 export const load = (async ({ locals }) => {
 	// During build/prerender, skip auth state fetching (BETTER_AUTH_SECRET not available)
@@ -16,7 +17,10 @@ export const load = (async ({ locals }) => {
 	const authState = getAuthState();
 	const token = locals.token;
 	if (!token) return { authState, initialData: undefined };
-	const client = createConvexHttpClient({ token });
+	// `url` is passed explicitly: `hooks.ts` registers the URL for the client
+	// singleton, but each server request gets a fresh module graph, so the
+	// implicit `getConvexUrl()` fallback is not reliable inside a load function.
+	const client = createConvexHttpClient({ token, convexUrl: PUBLIC_CONVEX_URL });
 
 	const orgs = AUTH_CONSTANTS.organizations;
 

@@ -1,4 +1,23 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
-	"hello_world": "Hello, {name} from cn!"
+	"hello_world": "Hello, {name} from cn!",
+	"mellow_awful_kudu_boost": "一个会写代码的制作人。一个精通三种语言的开发者。一个能听见文字背后音乐的译者。",
+	"wild_super_monkey_express": "我的服务",
+	"fierce_roo_ramp": "联系我",
+	"brisk_mink_mesh": "每个项目都从一次对话开始。",
+	"trim_yak_spray": "三个领域。一个工作室。",
+	"wild_trout_dip": "井字棋与国际象棋——基于 Convex 的双人对战游戏。",
+	"ready_mole_swing": "玩一局",
+	"sharp_snipe_twist": "文章、教程、随笔。按分类浏览，解锁付费内容。",
+	"zealous_dolphin_twirl": "阅读文章",
+	"plumb_monkey_forge": "音乐 · 代码 · 语言",
+	"jolly_gazelle_surge": "文章",
+	"blank_quail_drift": "服务",
+	"thin_koala_dock": "游戏",
+	"jolly_falcon_hop": "feavel@email.com",
+	"rapid_duck_flip": "加载中...",
+	"wise_seal_knit": "加载更多",
+	"bland_trout_flock": "尝试其他筛选条件或按 ⌘K 搜索",
+	"solid_trout_place": "未找到文章",
+	"long_lemur_clap": "文章 — Feavel"
 }

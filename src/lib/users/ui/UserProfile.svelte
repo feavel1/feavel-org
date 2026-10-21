@@ -22,8 +22,8 @@
 	} = $props();
 </script>
 
-<div class="w-full">
-	<div class="flex flex-col gap-3 pb-8">
+<div class="flex w-full flex-col gap-6">
+	<div class="flex flex-col gap-3">
 		<ProfileInfo {initialData} />
 		<Emails {initialData} />
 	</div>

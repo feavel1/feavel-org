@@ -9,6 +9,7 @@
 	import * as Popover from '../../ui/popover';
 	import * as Dialog from '../../ui/dialog';
 	import * as Avatar from '../../ui/avatar';
+	import { Button } from '../../ui/button';
 	// Icons
 	import Building2Icon from '@lucide/svelte/icons/building-2';
 	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
@@ -91,6 +92,24 @@
 	// Component state
 	let switcherPopoverOpen: boolean = $state(false);
 	let createOrganizationDialogOpen: boolean = $state(false);
+
+	/** Up to two capitals from the org name, for the logo stand-in. */
+	function initials(name?: string): string {
+		if (!name) return '—';
+		const words = name.trim().split(/\s+/).filter(Boolean);
+		if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+		return (words[0][0] + words[1][0]).toUpperCase();
+	}
+
+	// bits-ui v2 splits the old `positioning` object into `side` + `align` on the
+	// Content component, e.g. 'bottom-end' => { side: 'bottom', align: 'end' }.
+	const popoverPositioning = $derived.by(() => {
+		const [side, align] = popoverPlacement.split('-') as [
+			'top' | 'bottom' | 'left' | 'right',
+			'start' | 'end' | undefined
+		];
+		return { side, align: align ?? 'center' } as const;
+	});
 
 	// iOS back-swipe handling
 	let isIOS: boolean = $state(false);
@@ -239,7 +258,7 @@
 
 {#if !authConstants.organizations}
 	<!-- Gate 1: Organizations feature is disabled -->
-	<div class="text-error-600-400">
+	<div class="text-destructive">
 		Organizations are disabled, but OrganizationSwitcher is being used. Please turn them on in
 		auth.constants.ts
 	</div>
@@ -248,115 +267,97 @@
 	<!-- Return null by not rendering anything -->
 {:else if (isLoading || (organizationListResponse?.isLoading ?? false) || (activeOrganizationResponse?.isLoading ?? false)) && !organizationList && !activeOrganization}
 	<!-- Gate 3: Loading state - only show if queries are loading AND no data is available yet -->
-	<div class="placeholder h-8 w-40 animate-pulse"></div>
+	<div class="h-8 w-40 animate-pulse rounded-md bg-muted"></div>
 {:else if organizationList && organizationList.length === 0}
 	<!-- Gate 4: No organizations - show create organization modal -->
 	<Dialog.Root bind:open={createOrganizationDialogOpen}>
-		<Dialog.Trigger class="btn preset-tonal flex items-center gap-2">
-			<PlusIcon class="size-4" />
-			<span>Create Organization</span>
+		<Dialog.Trigger>
+			{#snippet child({ props })}
+				<button {...props} class="org-empty-trigger">
+					<PlusIcon class="size-3" />
+					<span>New organization</span>
+				</button>
+			{/snippet}
 		</Dialog.Trigger>
 		<Dialog.Content class="max-w-md">
 			<CreateOrganization onSuccessfulCreate={closeCreateOrganization} />
-			<Dialog.CloseX />
 		</Dialog.Content>
 	</Dialog.Root>
 {:else if organizationList}
 	<!-- Gate 5: Has organizations - show the switcher -->
-	<Popover.Root bind:open={switcherPopoverOpen} positioning={{ placement: popoverPlacement }}>
-		<Popover.Trigger
-			class="rounded-container border-surface-200-800 flex w-32 flex-row items-center justify-between border p-1 pr-2 duration-200 ease-in-out sm:w-40"
-		>
-			<div class="flex w-full max-w-64 items-center gap-2 overflow-hidden sm:gap-3">
-				<Avatar.Root class="rounded-container size-8 shrink-0">
-					<Avatar.Image
-						src={activeOrganization?.logo}
-						alt={activeOrganization?.name}
-						class="rounded-container"
-					/>
-					<Avatar.Fallback class="rounded-container">
-						<Building2Icon class="size-5" />
-					</Avatar.Fallback>
-				</Avatar.Root>
-				<span class="text-surface-700-300 truncate text-sm">
-					{activeOrganization?.name}
-				</span>
-			</div>
-			<ChevronsUpDownIcon class="size-4 opacity-40" />
+	<Popover.Root bind:open={switcherPopoverOpen}>
+		<Popover.Trigger>
+			{#snippet child({ props })}
+				<!-- Matches the nav's quiet typographic register: no border, no card,
+				     no shadow. A hairline rule and micro-caps label carry the weight. -->
+				<button
+					{...props}
+					class="org-trigger"
+					aria-label="Switch organization: {activeOrganization?.name ?? 'none'}"
+				>
+					<span class="org-mark" aria-hidden="true">
+						{#if activeOrganization?.logo}
+							<img src={activeOrganization.logo} alt="" />
+						{:else}
+							{initials(activeOrganization?.name)}
+						{/if}
+					</span>
+					<span class="org-trigger-name">{activeOrganization?.name}</span>
+					<ChevronsUpDownIcon class="org-trigger-caret" />
+				</button>
+			{/snippet}
 		</Popover.Trigger>
-		<Popover.Content>
-			<div class="flex flex-col gap-1">
-				<div role="list" class="rounded-container bg-surface-50-950 flex flex-col overflow-hidden">
+		<Popover.Content {...popoverPositioning} class="org-panel">
+			<div class="org-panel-inner">
+				<p class="org-panel-label">Organization</p>
+
+				<!-- Active org: identity first, then the action verbs beside it. -->
+				<div class="org-current">
+					<span class="org-mark org-mark--lg" aria-hidden="true">
+						{#if activeOrganization?.logo}
+							<img src={activeOrganization.logo} alt="" />
+						{:else}
+							{initials(activeOrganization?.name)}
+						{/if}
+					</span>
+					<div class="org-current-body">
+						<span class="org-current-name">{activeOrganization?.name}</span>
+						<span class="org-current-slug">{activeOrganization?.slug}</span>
+					</div>
 					{#if isOwnerOrAdmin}
-						<button
-							onclick={openProfileModal}
-							class="btn text-surface-700-300 hover:bg-surface-100-900/50 flex h-14 w-full max-w-80 items-center gap-3 p-3 pr-5 text-left text-sm/6"
-						>
-							<Avatar.Root class="rounded-container size-8 shrink-0">
-								<Avatar.Image
-									src={activeOrganization?.logo}
-									alt={activeOrganization?.name}
-									class="rounded-container"
-								/>
-								<Avatar.Fallback class="rounded-container">
-									<Building2Icon class="size-4" />
-								</Avatar.Fallback>
-							</Avatar.Root>
-							<span class="text-medium text-surface-700-300 w-full truncate text-sm">
-								{activeOrganization?.name}
-							</span>
-							<SettingsIcon class="size-6" />
+						<button class="org-action" onclick={openProfileModal} title="Organization settings">
+							<SettingsIcon />
+							<span class="sr-only">Organization settings</span>
 						</button>
 					{:else}
-						<div
-							class="border-surface-200-800 text-surface-700-300 flex max-w-80 items-center gap-3 border-t p-3 text-sm/6"
-						>
-							<Avatar.Root class="rounded-container size-8 shrink-0">
-								<Avatar.Image
-									src={activeOrganization?.logo}
-									alt={activeOrganization?.name}
-									class="rounded-container"
-								/>
-								<Avatar.Fallback class="rounded-container">
-									<Building2Icon class="size-4" />
-								</Avatar.Fallback>
-							</Avatar.Root>
-							<span class="text-medium text-surface-700-300 w-full truncate">
-								{activeOrganization?.name}
-							</span>
-							<LeaveOrganization />
-						</div>
+						<LeaveOrganization />
 					{/if}
-
-					{#each organizationList.filter((org) => org && org.id !== activeOrganization?.id) as org (org?.id)}
-						<div>
-							<button
-								onclick={() => updateActiveOrg(org.id)}
-								class="group border-surface-200-800 hover:bg-surface-100-900/50 flex w-full max-w-80 items-center gap-3 border-t p-3"
-							>
-								<Avatar.Root class="rounded-container size-8 shrink-0">
-									<Avatar.Image src={org.logo} alt={org.name} class="rounded-container" />
-									<Avatar.Fallback class="rounded-container">
-										<Building2Icon class="size-4" />
-									</Avatar.Fallback>
-								</Avatar.Root>
-								<span class="text-surface-700-300 truncate text-sm">
-									{org.name}
-								</span>
-							</button>
-						</div>
-					{/each}
 				</div>
-				<button
-					onclick={openCreateOrgModal}
-					class="btn hover:bg-surface-50-950/50 flex h-12 w-full items-center justify-start gap-3 bg-transparent p-3"
-				>
-					<div
-						class="rounded-base border-surface-300-700 bg-surface-200-800 flex size-8 shrink-0 items-center justify-center border border-dashed"
-					>
-						<PlusIcon class="size-4" />
-					</div>
-					<span class="text-surface-700-300 text-sm">Create Organization</span>
+
+				{#if organizationList.filter((org) => org && org.id !== activeOrganization?.id).length > 0}
+					<p class="org-panel-label org-panel-label--sep">Switch to</p>
+					<ul class="org-list">
+						{#each organizationList.filter((org) => org && org.id !== activeOrganization?.id) as org (org?.id)}
+							<li>
+								<button class="org-row" onclick={() => updateActiveOrg(org.id)}>
+									<span class="org-mark">
+										{#if org.logo}
+											<img src={org.logo} alt="" />
+										{:else}
+											{initials(org.name)}
+										{/if}
+									</span>
+									<span class="org-row-name">{org.name}</span>
+									<span class="org-row-go" aria-hidden="true">→</span>
+								</button>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+
+				<button class="org-create" onclick={openCreateOrgModal}>
+					<span class="org-mark org-mark--ghost" aria-hidden="true"><PlusIcon /></span>
+					<span class="org-create-label">New organization</span>
 				</button>
 			</div>
 		</Popover.Content>
@@ -369,7 +370,318 @@
 				<Dialog.Title>Create Organization</Dialog.Title>
 			</Dialog.Header>
 			<CreateOrganization onSuccessfulCreate={closeCreateOrganization} />
-			<Dialog.CloseX />
 		</Dialog.Content>
 	</Dialog.Root>
 {/if}
+
+<style>
+	/* ── Trigger ───────────────────────────────────────────────────────────────
+	   The nav is quiet typography; this control has to disappear into it rather
+	   than sit in it as a bordered widget. No border, no card, no shadow — a
+	   hairline rule under the name does the separating work instead. */
+	.org-trigger {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		max-width: 11rem;
+		padding: 0;
+		border: 0;
+		background: none;
+		cursor: pointer;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+		font-family: inherit;
+		line-height: 1;
+		transition: color 0.2s ease;
+	}
+	.org-trigger:hover {
+		color: var(--foreground);
+	}
+	/* `aria-expanded` is injected by the Popover primitive, so Svelte cannot
+	   statically see it on this element. */
+	.org-trigger:global([aria-expanded='true']) {
+		color: var(--foreground);
+	}
+	.org-trigger:focus-visible {
+		outline: 1px solid var(--ring);
+		outline-offset: 4px;
+	}
+
+	.org-trigger-name {
+		font-size: 0.6875rem;
+		font-weight: 400;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		/* Hairline underline keyed to the text, not a box around it. */
+		border-bottom: 1px solid color-mix(in oklch, currentColor 30%, transparent);
+		padding-bottom: 0.1875rem;
+	}
+
+	.org-trigger-caret {
+		width: 0.75rem;
+		height: 0.75rem;
+		flex-shrink: 0;
+		opacity: 0.45;
+		transition: opacity 0.2s ease;
+	}
+	.org-trigger:hover :global(.org-trigger-caret),
+	.org-trigger:global([aria-expanded='true']) :global(.org-trigger-caret) {
+		opacity: 0.8;
+	}
+
+	/* Square mark, never a rounded avatar chip. */
+	.org-mark {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		width: 1.375rem;
+		height: 1.375rem;
+		border: 1px solid color-mix(in oklch, var(--foreground) 18%, transparent);
+		color: var(--foreground);
+		font-family: var(--font-heading);
+		font-size: 0.5625rem;
+		letter-spacing: 0.02em;
+		line-height: 1;
+		overflow: hidden;
+	}
+	.org-mark :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	.org-mark--lg {
+		width: 2.25rem;
+		height: 2.25rem;
+		font-size: 0.75rem;
+	}
+	.org-mark--ghost {
+		border-style: dashed;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+	}
+	.org-mark--ghost :global(svg) {
+		width: 0.6875rem;
+		height: 0.6875rem;
+	}
+
+	/* ── Panel ─────────────────────────────────────────────────────────────────
+	   Editorial sheet: flat, hairline-bordered, zero radius, no blur or glass. */
+	:global(.org-panel) {
+		padding: 0;
+		width: 17rem;
+		border: 1px solid var(--border);
+		border-radius: 0;
+		background: var(--popover);
+		box-shadow: 0 12px 32px -12px color-mix(in oklch, var(--foreground) 22%, transparent);
+	}
+	.org-panel-inner {
+		display: flex;
+		flex-direction: column;
+		padding: 0.875rem 0 0;
+	}
+
+	.org-panel-label {
+		margin: 0 0 0.5rem;
+		padding: 0 0.875rem;
+		font-size: 0.5625rem;
+		font-weight: 400;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+	}
+	.org-panel-label--sep {
+		margin-top: 0.875rem;
+		padding-top: 0.875rem;
+		border-top: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+	}
+
+	/* Active org — identity block, no container. */
+	.org-current {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0 0.875rem 0.875rem;
+	}
+	.org-current-body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+		min-width: 0;
+		flex: 1;
+	}
+	.org-current-name {
+		font-family: var(--font-heading);
+		font-size: 1rem;
+		line-height: 1.15;
+		color: var(--foreground);
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+	.org-current-slug {
+		font-size: 0.5625rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	.org-action {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.75rem;
+		height: 1.75rem;
+		flex-shrink: 0;
+		border: 0;
+		background: none;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+		cursor: pointer;
+		transition:
+			color 0.2s ease,
+			background-color 0.2s ease;
+	}
+	.org-action:hover {
+		color: var(--foreground);
+		background: color-mix(in oklch, var(--foreground) 6%, transparent);
+	}
+	.org-action:focus-visible {
+		outline: 1px solid var(--ring);
+		outline-offset: -1px;
+	}
+	.org-action :global(svg) {
+		width: 0.875rem;
+		height: 0.875rem;
+	}
+
+	/* Switch list — rows separated by hairlines, no per-row containers. */
+	.org-list {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.org-row {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		width: 100%;
+		padding: 0.5rem 0.875rem;
+		border: 0;
+		border-top: 1px solid color-mix(in oklch, var(--border) 45%, transparent);
+		background: none;
+		cursor: pointer;
+		text-align: left;
+		font-family: inherit;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+		transition:
+			background-color 0.18s ease,
+			color 0.18s ease;
+	}
+	.org-row:first-child {
+		border-top: 0;
+	}
+	.org-row:hover {
+		background: color-mix(in oklch, var(--foreground) 5%, transparent);
+		color: var(--foreground);
+	}
+	.org-row:focus-visible {
+		outline: 1px solid var(--ring);
+		outline-offset: -1px;
+	}
+
+	.org-row-name {
+		flex: 1;
+		min-width: 0;
+		font-size: 0.8125rem;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	.org-row-go {
+		flex-shrink: 0;
+		font-size: 0.75rem;
+		opacity: 0;
+		transform: translateX(-0.25rem);
+		transition:
+			opacity 0.18s ease,
+			transform 0.18s ease;
+	}
+	.org-row:hover .org-row-go,
+	.org-row:focus-visible .org-row-go {
+		opacity: 0.7;
+		transform: translateX(0);
+	}
+
+	/* Create — the one intentionally recessed affordance. */
+	.org-create {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		width: 100%;
+		margin-top: 0.5rem;
+		padding: 0.625rem 0.875rem;
+		border: 0;
+		border-top: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+		background: none;
+		cursor: pointer;
+		text-align: left;
+		font-family: inherit;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+		transition:
+			background-color 0.18s ease,
+			color 0.18s ease;
+	}
+	.org-create:hover {
+		background: color-mix(in oklch, var(--foreground) 5%, transparent);
+		color: var(--foreground);
+	}
+	.org-create:focus-visible {
+		outline: 1px solid var(--ring);
+		outline-offset: -1px;
+	}
+	.org-create-label {
+		font-size: 0.6875rem;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	/* No-org state: same restraint as the trigger. */
+	.org-empty-trigger {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0;
+		border: 0;
+		background: none;
+		cursor: pointer;
+		font-family: inherit;
+		font-size: 0.6875rem;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+		transition: color 0.2s ease;
+	}
+	.org-empty-trigger:hover {
+		color: var(--foreground);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.org-trigger,
+		.org-trigger-caret,
+		.org-row,
+		.org-row-go,
+		.org-create,
+		.org-action,
+		.org-empty-trigger {
+			transition: none;
+		}
+		.org-row-go {
+			transform: none;
+		}
+	}
+</style>

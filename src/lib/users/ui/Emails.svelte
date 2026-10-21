@@ -10,6 +10,8 @@
 	// Icons
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	// Primitives
+	import { Button } from '../../ui/button';
+	import { Input } from '../../ui/input';
 	import { toast } from 'svelte-sonner';
 	import { tick } from 'svelte';
 
@@ -86,22 +88,24 @@
 
 <div class="flex flex-col gap-6">
 	{#if !activeUser}
-		<div class="placeholder h-16 w-full animate-pulse"></div>
+		<div class="h-16 w-full animate-pulse rounded-md bg-muted"></div>
 	{:else}
 		<!-- Inline editable email (matches ProfileInfo.svelte UX) -->
 		<div
 			class={[
-				'rounded-container border-surface-300-700 relative w-full border px-3.5 py-2 transition-all duration-200 ease-in-out',
+				'relative w-full rounded-lg border border-border transition-all duration-200 ease-in-out',
 				{
 					'cursor-pointer': !isEditingEmail,
-					'hover:bg-surface-200-800': !isEditingEmail,
-					'hover:border-surface-200-800': !isEditingEmail
+					'hover:bg-muted': !isEditingEmail,
+					'hover:border-border': !isEditingEmail
 				}
 			]}
 		>
-			<div class="flex items-center justify-between gap-3 transition-all duration-200 ease-in-out">
+			<div
+				class="flex items-center justify-between gap-3 px-3 py-1.5 transition-all duration-200 ease-in-out"
+			>
 				<div class="flex w-full flex-col">
-					<span class="text-surface-600-400 text-xs">Email Address</span>
+					<span class="text-xs text-muted-foreground">Email Address</span>
 					<!-- View mode (collapses when editing) -->
 					<div
 						class={[
@@ -116,9 +120,9 @@
 							<div class="flex items-center gap-2">
 								<span class="truncate text-sm">{activeUser.email}</span>
 								{#if activeUser.emailVerified}
-									<span class="badge preset-filled-success-100-900 text-xs">Verified</span>
+									<span class="org-pill org-pill--ok">Verified</span>
 								{:else}
-									<span class="badge preset-filled-warning-100-900 text-xs">Not verified</span>
+									<span class="org-pill org-pill--warn">Not verified</span>
 								{/if}
 							</div>
 						</div>
@@ -136,19 +140,21 @@
 					>
 						<div class="overflow-hidden">
 							<form onsubmit={handleSubmit} class="flex flex-col gap-3">
-								<input
-									bind:this={emailInputEl}
+								<Input
+									bind:ref={emailInputEl}
 									type="email"
-									class="input w-full"
+									class="w-full"
 									bind:value={newEmail}
 									placeholder="Enter new email address"
 									required
 									disabled={isSubmitting}
 								/>
 								<div class="mb-1 flex gap-1.5">
-									<button
+									<Button
 										type="button"
-										class="btn btn-sm preset-tonal w-full"
+										variant="secondary"
+										size="sm"
+										class="w-full"
 										onclick={() => {
 											newEmail = activeUser.email;
 											isEditingEmail = false;
@@ -156,17 +162,18 @@
 										disabled={isSubmitting}
 									>
 										Cancel
-									</button>
-									<button
+									</Button>
+									<Button
 										type="submit"
-										class="btn btn-sm preset-filled-primary-500 w-full"
+										size="sm"
+										class="w-full"
 										disabled={isSubmitting ||
 											!newEmail ||
 											newEmail.trim() === '' ||
 											newEmail === activeUser.email}
 									>
 										{isSubmitting ? 'Verifying...' : 'Verify Email'}
-									</button>
+									</Button>
 								</div>
 							</form>
 						</div>
@@ -175,7 +182,10 @@
 				<!-- Edit affordance and full-area overlay button in view mode -->
 				{#if !isEditingEmail}
 					<div class="shrink-0">
-						<span class=" btn-icon preset-filled-surface-50-950 pointer-events-none p-2">
+						<span
+							class="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground"
+							aria-hidden="true"
+						>
 							<PencilIcon class="size-4" />
 						</span>
 					</div>
@@ -196,3 +206,28 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	.org-pill {
+		display: inline-flex;
+		align-items: center;
+		height: 1.125rem;
+		padding: 0 0.3125rem;
+		border: 1px solid color-mix(in oklch, var(--foreground) 22%, transparent);
+		border-radius: 0;
+		font-size: 0.5rem;
+		font-weight: 400;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		line-height: 1;
+		white-space: nowrap;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+	}
+	.org-pill--ok {
+		border-color: color-mix(in oklch, var(--foreground) 30%, transparent);
+		color: var(--foreground);
+	}
+	.org-pill--warn {
+		border-style: dashed;
+	}
+</style>

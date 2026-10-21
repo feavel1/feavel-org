@@ -2,6 +2,9 @@
 	// UI
 	import { toast } from 'svelte-sonner';
 
+	// Components
+	import { Button } from '../../ui/button';
+
 	// Icons
 	import {
 		SiGithub,
@@ -189,8 +192,9 @@
 {#if show && hasAnyProvider}
 	<div class={'flex flex-col gap-3 ' + (className ?? '')}>
 		{#each activeProviders as p (p.id)}
-			<button
-				class="btn preset-outlined-surface-400-600 hover:border-surface-600-400 w-full"
+			<Button
+				variant="outline"
+				class="w-full"
 				onclick={() => handleSocialSignIn(p.id)}
 				disabled={!!submittingProvider}
 				aria-busy={submittingProvider === p.id}
@@ -206,14 +210,14 @@
 					<p.Icon size={16} />
 					{p.label}
 				{/if}
-			</button>
+			</Button>
 		{/each}
 
 		{#if dividerAfter}
 			<div class="relative flex items-center px-1">
-				<div class="border-surface-600-400/30 flex-1 border-t"></div>
-				<span class="px-2 text-xs text-surface-500">or</span>
-				<div class="border-surface-600-400/30 flex-1 border-t"></div>
+				<div class="flex-1 border-t border-border"></div>
+				<span class="px-2 text-xs text-muted-foreground">or</span>
+				<div class="flex-1 border-t border-border"></div>
 			</div>
 		{/if}
 	</div>

@@ -42,7 +42,7 @@ export default async function validateEmail(
 			};
 		}
 
-		const result = (await response.json()) as { status?: string };
+		const result = (await response.json()) as { status: string };
 
 		if (result.status !== 'valid') {
 			return {

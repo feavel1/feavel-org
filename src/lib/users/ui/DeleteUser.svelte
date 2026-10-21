@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Primitives
 	import * as Dialog from '../../ui/dialog';
+	import { Button, buttonVariants } from '../../ui/button';
 	import { toast } from 'svelte-sonner';
 	// Icons
 	import Loader2Icon from '@lucide/svelte/icons/loader-2';
@@ -59,21 +60,23 @@
 
 <Dialog.Root bind:open={deleteDialogOpen}>
 	<Dialog.Trigger
-		class="preset-faded-surface-50-950 btn btn-sm rounded-base text-surface-600-400 hover:bg-error-300-700 hover:text-error-950-50 justify-between gap-1 text-sm"
+		class="h-8 justify-between gap-1 rounded-md px-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
 		>Delete account</Dialog.Trigger
 	>
 	<Dialog.Content class="md:max-w-108">
 		<Dialog.Header>
 			<Dialog.Title>Delete your account</Dialog.Title>
-			<Dialog.Description class="text-surface-700-300">
+			<Dialog.Description class="text-muted-foreground">
 				Are you sure you want to delete your account? All of your data will be permanently deleted.
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="w-full">
-			<Dialog.Close class="btn preset-tonal" disabled={isDeleting}>Cancel</Dialog.Close>
-			<button
+			<Dialog.Close class={buttonVariants({ variant: 'secondary' })} disabled={isDeleting}
+				>Cancel</Dialog.Close
+			>
+			<Button
 				type="button"
-				class="btn preset-filled-error-500"
+				variant="destructive"
 				onclick={handleConfirm}
 				disabled={isDeleting}
 				aria-busy={isDeleting}
@@ -84,7 +87,7 @@
 				{:else}
 					Delete
 				{/if}
-			</button>
+			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

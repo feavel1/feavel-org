@@ -8,7 +8,8 @@
 	import * as Dialog from '../../ui/dialog';
 	import { toast } from 'svelte-sonner';
 	import * as Select from '../../ui/select';
-	import { createListCollection } from '../../ui/collection';
+	import { Button, buttonVariants } from '../../ui/button';
+	import { Label } from '../../ui/label';
 	// Icons
 	import Loader2Icon from '@lucide/svelte/icons/loader-2';
 
@@ -75,21 +76,19 @@
 	);
 
 	// Successor select
-	let selectedSuccessor = $state<string[]>([]);
-	const successorCollection = $derived(
-		createListCollection({
-			items: organizationMembers.map((member) => ({
-				label: `${member.user.name} (${member.user.email})`,
-				value: member.id
-			}))
-		})
+	let selectedSuccessor = $state<string | undefined>(undefined);
+	const successorItems = $derived(
+		organizationMembers.map((member) => ({
+			label: `${member.user.name} (${member.user.email})`,
+			value: member.id
+		}))
 	);
 
 	/**
 	 * Validates form input before submission
 	 */
 	function validateForm(): boolean {
-		if (isOwner && selectedSuccessor.length === 0) {
+		if (isOwner && !selectedSuccessor) {
 			toast.error('As the organization owner, you must select a successor before leaving.');
 			return false;
 		}
@@ -112,9 +111,7 @@
 		try {
 			await client.mutation(api.organizations.members.mutations.leaveOrganization, {
 				// Only send successorMemberId if the user is an owner and a successor is selected
-				...(isOwner && selectedSuccessor.length > 0
-					? { successorMemberId: selectedSuccessor[0] }
-					: {})
+				...(isOwner && selectedSuccessor ? { successorMemberId: selectedSuccessor } : {})
 			});
 
 			isOpen = false;
@@ -140,7 +137,8 @@
 {#if activeOrganization && members && members.length > 1}
 	<Dialog.Root bind:open={isOpen}>
 		<Dialog.Trigger
-			class="preset-faded-surface-50-950 btn btn-sm text-surface-600-400 hover:bg-error-300-700 hover:text-error-950-50 w-fit justify-between gap-1 text-sm"
+			class={buttonVariants({ variant: 'ghost', size: 'sm' }) +
+				' w-fit justify-between gap-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive'}
 		>
 			Leave organization
 		</Dialog.Trigger>
@@ -159,15 +157,12 @@
 
 			{#if isOwner}
 				<div class="w-full space-y-2">
-					<label for="successor" class="label"> New owner: </label>
-					<Select.Root collection={successorCollection} bind:value={selectedSuccessor}>
-						<Select.Trigger class="w-full" placeholder="Choose a successor" />
+					<Label for="successor">New owner:</Label>
+					<Select.Root type="single" items={successorItems} bind:value={selectedSuccessor}>
+						<Select.Trigger id="successor" class="w-full" placeholder="Choose a successor" />
 						<Select.Content>
-							{#each successorCollection.items as item (item.value)}
-								<Select.Item {item}>
-									<Select.ItemText>{item.label}</Select.ItemText>
-									<Select.ItemIndicator>✓</Select.ItemIndicator>
-								</Select.Item>
+							{#each successorItems as item (item.value)}
+								<Select.Item value={item.value} label={item.label} />
 							{/each}
 						</Select.Content>
 					</Select.Root>
@@ -175,12 +170,12 @@
 			{/if}
 
 			<Dialog.Footer>
-				<button class="btn preset-tonal" onclick={() => (isOpen = false)} disabled={isLeaving}>
+				<Button variant="secondary" onclick={() => (isOpen = false)} disabled={isLeaving}>
 					Cancel
-				</button>
-				<button
+				</Button>
+				<Button
 					type="button"
-					class="btn bg-error-500 text-white hover:bg-error-600"
+					variant="destructive"
 					onclick={handleLeaveOrganization}
 					disabled={isLeaving || (isOwner && !selectedSuccessor)}
 					aria-busy={isLeaving}
@@ -191,7 +186,7 @@
 					{:else}
 						Confirm
 					{/if}
-				</button>
+				</Button>
 			</Dialog.Footer>
 		</Dialog.Content>
 	</Dialog.Root>

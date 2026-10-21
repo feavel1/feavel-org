@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { cn } from '../../utils';
+	import { Button } from '../../ui/button';
 	import { getAuthContext } from '../context.svelte';
 	const { authClient } = getAuthContext();
 	import { invalidateAll } from '$app/navigation';
@@ -24,12 +25,10 @@
 	}
 </script>
 
-<button
-	class={cn(
-		'preset-faded-surface-50-950 btn hover:bg-surface-200-800 h-10 justify-between gap-1 text-sm',
-		className
-	)}
+<Button
+	variant="ghost"
+	class={cn('h-10 justify-between gap-1 text-sm', className)}
 	onclick={handleSignOut}
 >
 	Sign out
-</button>
+</Button>

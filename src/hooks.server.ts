@@ -1,32 +1,52 @@
-import { redirect } from '@sveltejs/kit';
+import { getTextDirection } from '#lib/paraglide/runtime.js';
+import { paraglideMiddleware } from '#lib/paraglide/server.js';
 import { sequence, type Handle } from '@sveltejs/kit/hooks';
 import { building } from '$app/env';
+import { redirect } from '@sveltejs/kit';
 import { getSessionCookie } from 'better-auth/cookies';
-import { createRouteMatcher } from './lib/utils/routeMatcher';
+import { createRouteMatcher } from '#lib/utils/routeMatcher.js';
 import { getToken } from '@mmailaender/convex-better-auth-svelte/sveltekit';
 import { withServerConvexToken } from 'convex-svelte/sveltekit/server';
 
+const paraglideHandle: Handle = ({ event, resolve }) =>
+	paraglideMiddleware(event.request, ({ locale }) => {
+		// SvelteKit 3's `RequestEvent.request` is read-only, so the middleware's
+		// de-localized request (e.g. `/fr/about` -> `/about`) can't be assigned back.
+		// `reroute` in hooks.ts already de-localizes the URL for route matching, so
+		// `event.request` / `event.url` stay authoritative when the `url` strategy is
+		// in use — see https://paraglidejs.com/middleware ("frameworks that handle URL
+		// localization themselves"). Locale state is still set by the middleware.
+		return resolve(event, {
+			transformPageChunk: ({ html }) => {
+				return html.replace('%lang%', locale).replace('%dir%', getTextDirection(locale));
+			}
+		});
+	});
 /* --------------------------------------------------------- */
 /* -------------------- route match helpers ---------------- */
 /* --------------------------------------------------------- */
-
 const isLogin = createRouteMatcher(['/signin']);
+
 const isPublic = createRouteMatcher([
 	'/',
 	'/signin',
+	'/create',
+	'/tic-tac-toe',
 	'/reset-password',
 	'/api/auth{/*rest}',
+	'/api{/*rest}',
 	'/pricing',
 	'/docs{/*rest}',
 	'/about',
 	'/terms',
-	'/privacy'
+	'/privacy',
+	'/posts{/*rest}',
+	'/demo{/*rest}'
 ]);
 
 /* --------------------------------------------------------- */
 /* ---------------------- auth helpers --------------------- */
 /* --------------------------------------------------------- */
-
 /** Builds `/path?redirectTo=/original/path%3Fquery`  */
 const withRedirect = (to: string, event: Parameters<Handle>[0]['event']) =>
 	`${to}?redirectTo=${encodeURIComponent(event.url.pathname + event.url.search)}`;
@@ -34,7 +54,6 @@ const withRedirect = (to: string, event: Parameters<Handle>[0]['event']) =>
 /* --------------------------------------------------------- */
 /* ---------------------- main handler --------------------- */
 /* --------------------------------------------------------- */
-
 const requireAuth: Handle = async ({ event, resolve }) => {
 	// ⛑️ During build/prerender, skip all auth logic.
 	// This prevents "Cannot access url.search on a page with prerendering enabled".
@@ -78,6 +97,4 @@ export const setTokenFromCookies: Handle = async ({ event, resolve }) => {
 /* --------------------------------------------------------- */
 /* ---------------------- exported hook -------------------- */
 /* --------------------------------------------------------- */
-
-export const handle = sequence(/* 1 */ requireAuth, /* 2 */ setTokenFromCookies);
-export type { Handle };
+export const handle = sequence(paraglideHandle, /* 1 */ requireAuth, /* 2 */ setTokenFromCookies);

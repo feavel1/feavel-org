@@ -8,6 +8,7 @@
 	/** UI **/
 	// Primitives
 	import * as Tabs from '../../ui/tabs';
+	import { Button } from '../../ui/button';
 	// Icons
 	import BoltIcon from '@lucide/svelte/icons/bolt';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
@@ -291,128 +292,480 @@
 	});
 </script>
 
-<Tabs.Root
-	bind:value={activeDesktopTab}
-	orientation="vertical"
-	class="relative h-full overflow-auto"
->
-	<!-- Desktop Layout -->
-	<div class="hidden h-full w-full md:flex">
-		<!-- Desktop Navigation -->
-		<div class="sm:bg-surface-300-700 h-full w-56 bg-surface-50 p-2 dark:bg-surface-800">
-			<div class="text-surface-600-400 p-3 pt-2 text-xs font-medium">Organization</div>
-			<Tabs.List class="flex flex-col">
+<Tabs.Root bind:value={activeDesktopTab} orientation="vertical" class="org-profile-root">
+	<!-- ─────────── Desktop ─────────── -->
+	<div class="org-desktop">
+		<aside class="org-rail">
+			<p class="org-rail-label">Organization</p>
+			<Tabs.List class="org-rail-list">
 				{#each visibleTabs as tab (tab.value)}
-					<Tabs.Trigger value={tab.value} class="gap-2 pl-2">
-						<div class="flex h-6 w-6 shrink-0 items-center justify-center">
-							<tab.icon />
-						</div>
-						<span class="w-full">{tab.label}</span>
+					<Tabs.Trigger value={tab.value} class="org-rail-tab">
+						<tab.icon class="org-rail-icon" />
+						<span>{tab.label}</span>
 					</Tabs.Trigger>
 				{/each}
 			</Tabs.List>
-		</div>
+		</aside>
 
-		<!-- Desktop Content -->
-		<div class="flex w-full">
-			<Tabs.Content value="general" class="w-ful flex h-full flex-col">
-				<div class="h-full">
-					<h6 class=" h6 pb-6 text-left">General settings</h6>
-					<GeneralSettings {initialData} />
-				</div>
-				<div>
-					<LeaveOrganization {initialData} />
+		<div class="org-pane">
+			<Tabs.Content value="general" class="org-tab-body">
+				<header class="org-pane-head">
+					<h2 class="org-pane-title">General</h2>
+					<p class="org-pane-desc">Identity, address, and what happens to this organization.</p>
+				</header>
 
-					<DeleteOrganization {onSuccessfulDelete} {initialData} />
+				<GeneralSettings {initialData} />
+
+				<div class="org-danger">
+					<p class="org-section-label">Membership</p>
+					<div class="org-danger-actions">
+						<LeaveOrganization {initialData} />
+						<DeleteOrganization {onSuccessfulDelete} {initialData} />
+					</div>
 				</div>
 			</Tabs.Content>
 
 			{#if isOwnerOrAdmin}
-				<Tabs.Content value="members">
-					<h6 class="h6 pb-6 text-left">Members</h6>
+				<Tabs.Content value="members" class="org-tab-body">
+					<header class="org-pane-head">
+						<h2 class="org-pane-title">Members</h2>
+						<p class="org-pane-desc">Who has access, and who has been invited.</p>
+					</header>
 					<MembersAndInvitations {initialData} />
 				</Tabs.Content>
-				<Tabs.Content value="billing">
-					<h6 class="h6 pb-6 text-left">Billing</h6>
+				<Tabs.Content value="billing" class="org-tab-body">
+					<header class="org-pane-head">
+						<h2 class="org-pane-title">Billing</h2>
+					</header>
 				</Tabs.Content>
 			{/if}
 		</div>
 	</div>
 
-	<!-- Mobile Layout -->
-	<div class="relative h-full w-full overflow-hidden md:hidden">
-		<!-- Mobile container that slides as a whole -->
+	<!-- ─────────── Mobile ─────────── -->
+	<div class="org-mobile">
 		<div
-			class={`flex h-full ${closingFromContent ? 'w-full transform-none' : 'w-[200%] transform'} ${!suppressMobileTransition && !closingFromContent ? 'transition-transform duration-300 ease-out' : ''} ${!closingFromContent && activeMobileTab !== '' ? '-translate-x-1/2' : !closingFromContent ? 'translate-x-0' : ''}`}
+			class="org-mobile-track"
+			class:org-mobile-track--closing={closingFromContent}
+			class:org-mobile-track--detail={!closingFromContent && activeMobileTab !== ''}
+			class:org-mobile-track--animated={!suppressMobileTransition && !closingFromContent}
 		>
-			<!-- Mobile Navigation (left half) -->
-			<div
-				class="sm:bg-surface-300-700 relative h-full w-1/2 bg-surface-100 p-2 dark:bg-surface-900"
-				class:hidden={closingFromContent}
-			>
-				<div class="h5 px-3 pt-3 pb-8">Organization settings</div>
-				<!-- Close button (close entire modal) shown on list view for ideal fade-out -->
-				<button
-					class="rounded-base hover:bg-surface-300-700 absolute top-5 right-4 z-10 p-2 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-					onclick={closeFromContent}
-					aria-label="Close organization profile"
-					type="button"
-				>
-					<XIcon />
-				</button>
-				<Tabs.List class=" flex w-full flex-col  pr-2">
-					{#each visibleTabs as tab, index (tab.value)}
+			<div class="org-mobile-menu" class:org-mobile-menu--hidden={closingFromContent}>
+				<div class="org-mobile-head">
+					<p class="org-rail-label">Organization</p>
+					<Button
+						variant="ghost"
+						size="icon"
+						class="org-mobile-close"
+						onclick={closeFromContent}
+						aria-label="Close organization profile"
+						type="button"
+					>
+						<XIcon />
+					</Button>
+				</div>
+
+				<Tabs.List class="org-mobile-list">
+					{#each visibleTabs as tab (tab.value)}
 						<Tabs.Trigger
 							value={tab.value}
 							onclick={() => handleMobileTabChange(tab.value)}
-							class=" flex w-full items-center justify-between gap-3 aria-selected:bg-transparent aria-selected:text-inherit"
+							class="org-mobile-row"
 						>
-							<div
-								class="rounded-base bg-surface-300-700 flex size-8 shrink-0 items-center justify-center"
-							>
-								<tab.icon />
-							</div>
-							<span class="w-full">{tab.label}</span>
-							<ChevronRightIcon class="flex text-surface-500" />
+							<span class="org-mobile-row-icon"><tab.icon /></span>
+							<span class="org-mobile-row-label">{tab.label}</span>
+							<ChevronRightIcon class="org-mobile-row-go" />
 						</Tabs.Trigger>
-						{#if index < visibleTabs.length - 1}
-							<div class="flex h-2 w-full items-center justify-center px-3">
-								<hr class="border-surface-200-800 w-full border" />
-							</div>
-						{/if}
 					{/each}
 				</Tabs.List>
 			</div>
 
-			<!-- Mobile Content (right half) -->
-			<div
-				class={`flex h-full flex-col gap-4 bg-surface-50 px-4 py-6 dark:bg-surface-900 ${closingFromContent ? 'absolute inset-0 w-full' : 'relative w-1/2'}`}
-			>
-				<!-- Back button (go back to tabs list) -->
-				<button
-					class="rounded-base hover:bg-surface-300-700 absolute top-5 left-4 z-10 p-2 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+			<div class="org-mobile-detail" class:org-mobile-detail--full={closingFromContent}>
+				<Button
+					variant="ghost"
+					size="icon"
+					class="org-mobile-back"
 					onclick={closeMobileTab}
 					aria-label="Go back to organization settings menu"
 				>
 					<ChevronLeftIcon />
-				</button>
+				</Button>
 
 				{#if activeMobileTab === 'general'}
-					<div class="h-full">
-						<h6 class="h6 pb-12 pl-10">General settings</h6>
-						<GeneralSettings {initialData} />
+					<header class="org-pane-head org-pane-head--mobile">
+						<h2 class="org-pane-title">General</h2>
+					</header>
+					<GeneralSettings {initialData} />
+					<div class="org-danger">
+						<p class="org-section-label">Membership</p>
+						<div class="org-danger-actions">
+							<LeaveOrganization {initialData} />
+							<DeleteOrganization {onSuccessfulDelete} {initialData} />
+						</div>
 					</div>
-
-					<DeleteOrganization {onSuccessfulDelete} {initialData} />
-
-					<LeaveOrganization {initialData} />
 				{:else if activeMobileTab === 'members'}
-					<h6 class="h6 pb-6 pl-10">Members</h6>
+					<header class="org-pane-head org-pane-head--mobile">
+						<h2 class="org-pane-title">Members</h2>
+					</header>
 					<MembersAndInvitations {initialData} />
 				{:else if activeMobileTab === 'billing'}
-					<h6 class="h6 pb-6 pl-10">Billing</h6>
+					<header class="org-pane-head org-pane-head--mobile">
+						<h2 class="org-pane-title">Billing</h2>
+					</header>
 				{/if}
 			</div>
 		</div>
 	</div>
 </Tabs.Root>
+
+<style>
+	/* ── Shell ────────────────────────────────────────────────────────────────
+	   Zero radius to match the app's Weathered Wall system; the sheet reads as
+	   one editorial page split by a single hairline, not a card holding cards. */
+	:global(.org-profile-root) {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		min-height: 0;
+		background: var(--popover);
+	}
+
+	.org-desktop {
+		display: none;
+		min-height: 0;
+		height: 100%;
+	}
+
+	/* ── Rail ───────────────────────────────────────────────────────────────── */
+	.org-rail {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		width: 12rem;
+		flex-shrink: 0;
+		padding: 1.25rem 0.75rem;
+		border-right: 1px solid color-mix(in oklch, var(--border) 65%, transparent);
+		background: color-mix(in oklch, var(--foreground) 2.5%, var(--popover));
+		overflow-y: auto;
+	}
+
+	.org-rail-label {
+		margin: 0;
+		padding: 0 0.5rem;
+		font-size: 0.5625rem;
+		font-weight: 400;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+	}
+
+	:global(.org-rail-list) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.0625rem;
+		width: 100%;
+		padding: 0;
+		background: none;
+		border-radius: 0;
+	}
+
+	:global(.org-rail-tab) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		width: 100%;
+		height: auto;
+		padding: 0.4375rem 0.5rem;
+		border: 0;
+		border-radius: 0;
+		background: none;
+		box-shadow: none;
+		font-size: 0.75rem;
+		font-weight: 400;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+		transition:
+			color 0.18s ease,
+			background-color 0.18s ease;
+	}
+	:global(.org-rail-tab:hover) {
+		color: var(--foreground);
+		background: color-mix(in oklch, var(--foreground) 5%, transparent);
+	}
+	:global(.org-rail-tab[data-active]),
+	:global(.org-rail-tab[aria-selected='true']) {
+		color: var(--foreground);
+		background: color-mix(in oklch, var(--foreground) 8%, transparent);
+	}
+	:global(.org-rail-tab:focus-visible) {
+		outline: 1px solid var(--ring);
+		outline-offset: -1px;
+	}
+	/* Kill the line-variant underline chrome from the primitive. */
+	:global(.org-rail-tab::after) {
+		display: none;
+	}
+	:global(.org-rail-icon) {
+		width: 0.8125rem;
+		height: 0.8125rem;
+		flex-shrink: 0;
+		opacity: 0.7;
+	}
+
+	/* ── Pane ───────────────────────────────────────────────────────────────── */
+	.org-pane {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-width: 0;
+		min-height: 0;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+	}
+
+	:global(.org-tab-body) {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+		padding: 1.5rem 1.75rem 1.75rem;
+		flex: 1;
+	}
+
+	.org-pane-head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		padding-bottom: 1rem;
+		border-bottom: 1px solid color-mix(in oklch, var(--border) 65%, transparent);
+	}
+	.org-pane-head--mobile {
+		padding-left: 2.25rem;
+	}
+
+	.org-pane-title {
+		margin: 0;
+		font-family: var(--font-heading);
+		font-size: 1.375rem;
+		font-weight: 400;
+		line-height: 1.15;
+		letter-spacing: -0.01em;
+		color: var(--foreground);
+	}
+
+	.org-pane-desc {
+		margin: 0;
+		font-size: 0.75rem;
+		line-height: 1.5;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+		max-width: 46ch;
+	}
+
+	/* ── Danger / membership strip ──────────────────────────────────────────── */
+	.org-danger {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+		margin-top: auto;
+		padding-top: 1.25rem;
+		border-top: 1px solid color-mix(in oklch, var(--border) 65%, transparent);
+	}
+
+	.org-section-label {
+		margin: 0;
+		font-size: 0.5625rem;
+		font-weight: 400;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+	}
+
+	.org-danger-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		align-items: center;
+	}
+
+	/* ── Mobile ─────────────────────────────────────────────────────────────── */
+	.org-mobile {
+		position: relative;
+		flex: 1;
+		min-height: 0;
+		overflow: hidden;
+	}
+
+	.org-mobile-track {
+		display: flex;
+		width: 200%;
+		height: 100%;
+		transform: translateX(0);
+	}
+	.org-mobile-track--animated {
+		transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+	}
+	.org-mobile-track--detail {
+		transform: translateX(-50%);
+	}
+	.org-mobile-track--closing {
+		width: 100%;
+		transform: none;
+	}
+
+	.org-mobile-menu {
+		position: relative;
+		width: 50%;
+		flex-shrink: 0;
+		height: 100%;
+		padding: 1.25rem 0.875rem;
+		overflow-y: auto;
+	}
+	.org-mobile-menu--hidden {
+		display: none;
+	}
+
+	.org-mobile-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 1.25rem;
+	}
+
+	/* Touch targets: keep the icon small but the hit area ≥44px. */
+	:global(.org-mobile-close),
+	:global(.org-mobile-back) {
+		position: relative;
+	}
+	:global(.org-mobile-close)::after,
+	:global(.org-mobile-back)::after {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 44px;
+		height: 44px;
+		transform: translate(-50%, -50%);
+	}
+	:global(.org-mobile-close) {
+		height: 1.75rem;
+		width: 1.75rem;
+		border-radius: 0;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+	}
+	:global(.org-mobile-close:hover) {
+		color: var(--foreground);
+	}
+
+	:global(.org-mobile-list) {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		padding: 0;
+		background: none;
+		border-radius: 0;
+	}
+
+	:global(.org-mobile-row) {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		width: 100%;
+		height: auto;
+		padding: 0.6875rem 0.25rem;
+		border: 0;
+		border-top: 1px solid color-mix(in oklch, var(--border) 45%, transparent);
+		border-radius: 0;
+		background: none;
+		box-shadow: none;
+		font-size: 0.8125rem;
+		color: var(--foreground);
+		justify-content: flex-start;
+	}
+	:global(.org-mobile-row:first-child) {
+		border-top: 0;
+	}
+	:global(.org-mobile-row::after) {
+		display: none;
+	}
+	:global(.org-mobile-row:focus-visible) {
+		outline: 1px solid var(--ring);
+		outline-offset: -1px;
+	}
+
+	.org-mobile-row-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.625rem;
+		height: 1.625rem;
+		flex-shrink: 0;
+		border: 1px solid color-mix(in oklch, var(--foreground) 14%, transparent);
+	}
+	.org-mobile-row-icon :global(svg) {
+		width: 0.8125rem;
+		height: 0.8125rem;
+		opacity: 0.7;
+	}
+
+	.org-mobile-row-label {
+		flex: 1;
+		text-align: left;
+	}
+
+	:global(.org-mobile-row-go) {
+		width: 0.875rem;
+		height: 0.875rem;
+		flex-shrink: 0;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+	}
+
+	.org-mobile-detail {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		width: 50%;
+		flex-shrink: 0;
+		height: 100%;
+		padding: 1.25rem 0.875rem 1.5rem;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+	}
+	.org-mobile-detail--full {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+	}
+
+	:global(.org-mobile-back) {
+		position: absolute;
+		top: 1.0625rem;
+		left: 0.125rem;
+		z-index: 2;
+		height: 1.75rem;
+		width: 1.75rem;
+		border-radius: 0;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+	}
+	:global(.org-mobile-back:hover) {
+		color: var(--foreground);
+	}
+
+	/* ── Breakpoint ─────────────────────────────────────────────────────────── */
+	@media (min-width: 768px) {
+		.org-desktop {
+			display: flex;
+		}
+		.org-mobile {
+			display: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.org-mobile-track--animated {
+			transition: none;
+		}
+		:global(.org-rail-tab) {
+			transition: none;
+		}
+	}
+</style>

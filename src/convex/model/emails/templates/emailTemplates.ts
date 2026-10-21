@@ -189,6 +189,55 @@ export interface InviteMemberProps {
 	brandLogoUrl?: string;
 }
 
+export interface ContactInquiryNotificationProps {
+	name: string;
+	email: string;
+	category: string;
+	message: string;
+}
+
+export function renderContactInquiryNotification({
+	name,
+	email,
+	category,
+	message
+}: ContactInquiryNotificationProps): string {
+	const content = `
+		<h1 style="${styles.h1}">New Contact Inquiry</h1>
+		<table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
+			<tr><td style="padding: 8px; font-weight: bold; color: #333;">Name</td><td style="padding: 8px; color: #333;">${name}</td></tr>
+			<tr><td style="padding: 8px; font-weight: bold; color: #333;">Email</td><td style="padding: 8px; color: #333;">${email}</td></tr>
+			<tr><td style="padding: 8px; font-weight: bold; color: #333;">Service</td><td style="padding: 8px; color: #333;">${category}</td></tr>
+		</table>
+		<div style="background-color: #f8f9fa; border-left: 4px solid #2754C5; padding: 16px; margin: 16px 0; border-radius: 4px;">
+			<p style="margin: 0; color: #333; font-size: 14px; line-height: 1.5; white-space: pre-wrap;">${message}</p>
+		</div>
+	`;
+
+	return renderBaseEmail({
+		children: content,
+		previewText: `New inquiry from ${name}`
+	});
+}
+
+export function renderContactInquiryAutoReply({ name }: { name: string }): string {
+	const content = `
+		<h1 style="${styles.h1}">Thanks for reaching out, ${name}</h1>
+		<p style="${styles.text}">
+			I've received your message and will get back to you within 24 hours.
+			If your request is urgent, feel free to email me directly.
+		</p>
+		<p style="${styles.text}">
+			Best,<br />Feavel
+		</p>
+	`;
+
+	return renderBaseEmail({
+		children: content,
+		previewText: 'Thanks for your message'
+	});
+}
+
 export function renderInviteMember({
 	url,
 	inviter,

@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Svelte
 	import { tick } from 'svelte';
-	import type { GenericId } from 'convex/values';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -13,6 +12,8 @@
 
 	// Primitives
 	import { toast } from 'svelte-sonner';
+	import { Button } from '../../ui/button';
+	import { Input } from '../../ui/input';
 	import * as Avatar from '../../ui/avatar';
 	import * as ImageCropper from '../../ui/image-cropper';
 	import { getFileFromUrl } from '../../ui/image-cropper';
@@ -77,13 +78,13 @@
 	// Inline name editing state
 	let isEditingName: boolean = $state(false);
 	let name: string = $state('');
-	let nameInputEl: HTMLInputElement | null = $state(null);
+	let nameInputEl = $state<HTMLInputElement | null>(null);
 
 	// Inline slug editing state
 	let isEditingSlug: boolean = $state(false);
 	let slug: string = $state('');
 	let isSavingSlug: boolean = $state(false);
-	let slugInputEl: HTMLInputElement | null = $state(null);
+	let slugInputEl = $state<HTMLInputElement | null>(null);
 
 	// Initialize state when organization data is available
 	$effect(() => {
@@ -122,16 +123,17 @@
 				forceConvert: true
 			});
 
-			const uploadUrl = await client.mutation(api.storage.generateUploadUrl, {});
+			const { url: uploadUrl, key } = await client.mutation(api.r2.genUploadUrl, {
+				prefix: 'logos'
+			});
 			const response = await fetch(uploadUrl, {
-				method: 'POST',
+				method: 'PUT',
 				headers: { 'Content-Type': optimizedFile.type },
 				body: optimizedFile
 			});
 			if (!response.ok) throw new Error('Failed to upload file');
 
-			const { storageId } = (await response.json()) as { storageId: GenericId<'_storage'> };
-			await updateOrganization({ logoId: storageId });
+			await updateOrganization({ logoUrl: `https://storage.feavel.com/${key}` });
 
 			imageLoadingStatus = 'loaded';
 			toast.success('Organization logo updated successfully');
@@ -262,38 +264,35 @@
 	<div class="flex w-full flex-col items-start gap-6">
 		<ImageCropper.Root bind:src={cropSrc} accept="image/*" onCropped={handleCropped}>
 			<ImageCropper.UploadTrigger>
-				<div class="rounded-container relative cursor-pointer transition-all duration-200">
+				<div class="org-logo relative cursor-pointer">
 					{#key logoKey}
 						<Avatar.Root
-							class="rounded-container size-20"
-							onStatusChange={(e) => (imageLoadingStatus = e.status)}
+							class="org-logo-frame size-20"
+							onLoadingStatusChange={(status: 'loading' | 'loaded' | 'error') =>
+								(imageLoadingStatus = status)}
 						>
 							<Avatar.Image
 								src={displayedLogoSrc}
 								alt={activeOrganization.name || 'Organization'}
 							/>
-							<Avatar.Fallback
-								class="rounded-container bg-surface-300-700 hover:bg-surface-400-600/80 duration-150 ease-in-out"
-							>
-								<Building2Icon class="text-surface-700-300 size-10" />
+							<Avatar.Fallback class="org-logo-fallback size-20">
+								<Building2Icon class="size-8" />
 							</Avatar.Fallback>
 						</Avatar.Root>
 					{/key}
 
 					{#if showLogoOverlay}
 						<div
-							class="rounded-container bg-surface-50-950 pointer-events-none absolute inset-0 flex items-center justify-center"
+							class="org-logo-overlay pointer-events-none absolute inset-0 flex items-center justify-center"
 						>
-							<div
-								class="h-6 w-6 animate-spin rounded-full border-2 border-white border-b-transparent"
-							></div>
+							<div class="org-spinner"></div>
 						</div>
 					{/if}
 
 					<div
-						class="preset-filled-surface-300-700 ring-surface-50-950 dark:ring-surface-100-900 absolute -right-1.5 -bottom-1.5 flex size-3 items-center justify-center rounded-full ring-4"
+						class="org-logo-edit absolute right-0 bottom-0 flex size-5 items-center justify-center"
 					>
-						<PencilIcon class="size-4" />
+						<PencilIcon class="size-3" />
 					</div>
 				</div>
 			</ImageCropper.UploadTrigger>
@@ -310,19 +309,15 @@
 		<div class="flex w-full flex-col gap-3">
 			<div
 				class={[
-					'rounded-container border-surface-300-700 relative w-full border px-3.5 py-2 transition-all duration-200 ease-in-out',
-					{
-						'cursor-pointer': isOwnerOrAdmin && !isEditingName,
-						'hover:bg-surface-200-800': isOwnerOrAdmin && !isEditingName,
-						'hover:border-surface-200-800': isOwnerOrAdmin && !isEditingName
-					}
+					'org-field relative w-full',
+					{ 'org-field--editable': isOwnerOrAdmin && !isEditingName }
 				]}
 			>
 				<div
 					class="flex items-center justify-between gap-3 transition-all duration-200 ease-in-out"
 				>
 					<div class="flex w-full flex-col gap-0">
-						<span class="text-surface-600-400 text-xs">Organization name</span>
+						<span class="org-field-label">Organization name</span>
 						<!-- View mode (collapses when editing) -->
 						<div
 							class={[
@@ -334,7 +329,7 @@
 							inert={isEditingName}
 						>
 							<div class="overflow-hidden">
-								<span class=" truncate text-sm">{activeOrganization.name}</span>
+								<span class="org-field-value truncate">{activeOrganization.name}</span>
 							</div>
 						</div>
 
@@ -350,32 +345,30 @@
 						>
 							<div class="overflow-hidden">
 								<form onsubmit={handleNameSubmit} class="flex w-full flex-col gap-3">
-									<input
-										bind:this={nameInputEl}
-										type="text"
-										class="input w-full"
-										bind:value={name}
-									/>
+									<Input ref={nameInputEl} type="text" bind:value={name} />
 									<div class="mb-1 flex gap-1.5">
-										<button
+										<Button
 											type="button"
-											class="btn btn-sm preset-tonal w-full"
+											variant="secondary"
+											size="sm"
+											class="w-full"
 											onclick={() => {
 												name = activeOrganization.name;
 												isEditingName = false;
 											}}
 										>
 											Cancel
-										</button>
-										<button
+										</Button>
+										<Button
 											type="submit"
-											class="btn btn-sm preset-filled-primary-500 w-full"
+											size="sm"
+											class="w-full"
 											disabled={!name ||
 												name.trim() === '' ||
 												name.trim() === activeOrganization.name.trim()}
 										>
 											Save
-										</button>
+										</Button>
 									</div>
 								</form>
 							</div>
@@ -384,9 +377,15 @@
 					<!-- Edit affordance and full-area overlay button in view mode -->
 					{#if isOwnerOrAdmin && !isEditingName}
 						<div class="shrink-0">
-							<span class="btn-icon preset-filled-surface-50-950 pointer-events-none p-2">
+							<Button
+								variant="ghost"
+								size="icon"
+								tabindex={-1}
+								class="pointer-events-none"
+								aria-hidden="true"
+							>
 								<PencilIcon class="size-4" />
-							</span>
+							</Button>
 						</div>
 						<button
 							class="absolute inset-0 h-full w-full"
@@ -407,19 +406,15 @@
 			<!-- Inline editable organization slug -->
 			<div
 				class={[
-					'rounded-container border-surface-300-700 relative w-full border px-3.5 py-2 transition-all duration-200 ease-in-out',
-					{
-						'cursor-pointer': isOwnerOrAdmin && !isEditingSlug,
-						'hover:bg-surface-200-800': isOwnerOrAdmin && !isEditingSlug,
-						'hover:border-surface-200-800': isOwnerOrAdmin && !isEditingSlug
-					}
+					'org-field relative w-full',
+					{ 'org-field--editable': isOwnerOrAdmin && !isEditingSlug }
 				]}
 			>
 				<div
 					class="flex items-center justify-between gap-3 transition-all duration-200 ease-in-out"
 				>
 					<div class="flex w-full flex-col gap-0">
-						<span class="text-surface-600-400 text-xs">Slug</span>
+						<span class="org-field-label">Slug</span>
 						<!-- View mode (collapses when editing) -->
 						<div
 							class={[
@@ -431,7 +426,9 @@
 							inert={isEditingSlug}
 						>
 							<div class="overflow-hidden">
-								<span class=" truncate text-sm">{activeOrganization.slug}</span>
+								<span class="org-field-value org-field-value--slug truncate"
+									>{activeOrganization.slug}</span
+								>
 							</div>
 						</div>
 
@@ -447,17 +444,13 @@
 						>
 							<div class="overflow-hidden">
 								<form onsubmit={handleSlugSubmit} class="flex w-full flex-col gap-3">
-									<input
-										bind:this={slugInputEl}
-										type="text"
-										class="input w-full"
-										bind:value={slug}
-										disabled={isSavingSlug}
-									/>
+									<Input ref={slugInputEl} type="text" bind:value={slug} disabled={isSavingSlug} />
 									<div class="mb-1 flex gap-1.5">
-										<button
+										<Button
 											type="button"
-											class="btn btn-sm preset-tonal w-full"
+											variant="secondary"
+											size="sm"
+											class="w-full"
 											disabled={isSavingSlug}
 											onclick={() => {
 												slug = activeOrganization.slug || '';
@@ -465,17 +458,18 @@
 											}}
 										>
 											Cancel
-										</button>
-										<button
+										</Button>
+										<Button
 											type="submit"
-											class="btn btn-sm preset-filled-primary-500 w-full"
+											size="sm"
+											class="w-full"
 											disabled={isSavingSlug ||
 												!slug ||
 												slug.trim() === '' ||
 												slug.trim() === (activeOrganization.slug || '').trim()}
 										>
 											{isSavingSlug ? 'Saving...' : 'Save'}
-										</button>
+										</Button>
 									</div>
 								</form>
 							</div>
@@ -483,9 +477,15 @@
 					</div>
 					{#if isOwnerOrAdmin && !isEditingSlug}
 						<div class="shrink-0">
-							<span class="btn-icon preset-filled-surface-50-950 pointer-events-none p-2">
+							<Button
+								variant="ghost"
+								size="icon"
+								tabindex={-1}
+								class="pointer-events-none"
+								aria-hidden="true"
+							>
 								<PencilIcon class="size-4" />
-							</span>
+							</Button>
 						</div>
 						<button
 							class="absolute inset-0 h-full w-full"
@@ -505,3 +505,112 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	/* ── Logo mark ────────────────────────────────────────────────────────────
+	   Square, hairline, zero radius — the same mark language as the switcher. */
+	.org-logo {
+		display: inline-flex;
+	}
+
+	:global(.org-logo-frame) {
+		border: 1px solid color-mix(in oklch, var(--foreground) 16%, transparent);
+		border-radius: 0;
+		overflow: hidden;
+		background: color-mix(in oklch, var(--foreground) 4%, var(--popover));
+	}
+	:global(.org-logo-frame img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	:global(.org-logo-fallback) {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0;
+		background: transparent;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+		transition: color 0.18s ease;
+	}
+	.org-logo:hover :global(.org-logo-fallback) {
+		color: var(--foreground);
+	}
+
+	.org-logo-overlay {
+		background: color-mix(in oklch, var(--popover) 72%, transparent);
+	}
+
+	.org-spinner {
+		width: 1.125rem;
+		height: 1.125rem;
+		border: 1.5px solid color-mix(in oklch, var(--foreground) 20%, transparent);
+		border-bottom-color: var(--foreground);
+		border-radius: 50%;
+		animation: org-spin 0.7s linear infinite;
+	}
+	@keyframes org-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.org-logo-edit {
+		border: 1px solid color-mix(in oklch, var(--foreground) 16%, transparent);
+		border-radius: 0;
+		background: var(--popover);
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+	}
+
+	/* ── Editable fields ──────────────────────────────────────────────────────
+	   One hairline rule per field, no nested cards. The whole row is the target. */
+	.org-field {
+		padding: 0.5rem 0.75rem 0.5625rem;
+		border: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+		border-radius: 0;
+		background: transparent;
+		transition:
+			border-color 0.18s ease,
+			background-color 0.18s ease;
+	}
+	.org-field--editable {
+		cursor: pointer;
+	}
+	.org-field--editable:hover {
+		border-color: color-mix(in oklch, var(--foreground) 22%, transparent);
+		background: color-mix(in oklch, var(--foreground) 3%, transparent);
+	}
+	.org-field:focus-within {
+		border-color: color-mix(in oklch, var(--foreground) 28%, transparent);
+	}
+
+	.org-field-label {
+		font-size: 0.5625rem;
+		font-weight: 400;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+	}
+
+	.org-field-value {
+		display: block;
+		font-size: 0.875rem;
+		line-height: 1.35;
+		color: var(--foreground);
+	}
+	.org-field-value--slug {
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.01em;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.org-field,
+		:global(.org-logo-fallback) {
+			transition: none;
+		}
+		.org-spinner {
+			animation-duration: 2s;
+		}
+	}
+</style>

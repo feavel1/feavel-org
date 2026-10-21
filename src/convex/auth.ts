@@ -62,9 +62,6 @@ export const authComponent = createClient<DataModel, typeof authSchema>(componen
 				}
 			},
 			onDelete: async (ctx, authUser) => {
-				if (authUser.imageId) {
-					await ctx.storage.delete(authUser.imageId);
-				}
 				if (AUTH_CONSTANTS.organizations) {
 					await ctx.runMutation(components.betterAuth.organization.deleteUser, authUser);
 				}
@@ -321,16 +318,6 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
 			...(AUTH_CONSTANTS.organizations
 				? [
 						organization({
-							schema: {
-								organization: {
-									additionalFields: {
-										logoId: {
-											type: 'string',
-											required: false
-										}
-									}
-								}
-							},
 							sendInvitationEmail: async (data, request) => {
 								const invitationBaseUrl = resolveRequestBaseUrl(request);
 								if (!invitationBaseUrl) {

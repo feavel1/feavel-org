@@ -41,5 +41,20 @@ export default defineConfig(
 		// Override or add rule settings here, such as:
 		// 'svelte/button-has-type': 'error'
 		rules: {}
+	},
+	{
+		// shadcn-svelte / shadcn-svelte-extras code vendored by the CLI or jsrepo.
+		// It is regenerated on upgrade, so we do not hand-edit it to satisfy our lint rules.
+		files: ['src/lib/ui/**'],
+		rules: {
+			// <Button href> is a polymorphic primitive ($derived from $props). The href is
+			// caller-supplied and may legitimately be external, so resolve() does not apply.
+			'svelte/no-navigation-without-resolve': 'off',
+			// Idiomatic throwaway tuple slot, e.g. `{#each Array.from({length: 4}) as _, i (i)}`.
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{ argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
+			]
+		}
 	}
 );

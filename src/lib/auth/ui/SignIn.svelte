@@ -14,6 +14,9 @@
 	import EmailOtpFlow from './EmailOtpFlow.svelte';
 	import MagicLinkFlow from './MagicLinkFlow.svelte';
 	import SocialFlow from './SocialFlow.svelte';
+	// Components
+	import { Button } from '../../ui/button';
+
 	// Icons
 	import MailIcon from '@lucide/svelte/icons/mail';
 
@@ -292,21 +295,21 @@
 		<div class="flex flex-col">
 			<!-- Circle -->
 			<div class="mb-4 flex">
-				<div class="bg-surface-200-800 flex h-16 w-16 items-center justify-center rounded-full">
-					<MailIcon class="text-surface-600-400 size-8" />
+				<div class="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+					<MailIcon class="size-8 text-muted-foreground" />
 				</div>
 			</div>
 
 			<!-- Info -->
 			<h3 class="h5 w-full text-left leading-8">Check your email</h3>
-			<p class="text-surface-600-400 mt-2 text-sm">
+			<p class="mt-2 text-sm text-muted-foreground">
 				{#if verifyContext === 'magicLink'}
 					We've sent a magic link to <strong>{email}</strong>.
 				{:else}
 					We've sent a verification link to <strong>{email}</strong>.
 				{/if}
 			</p>
-			<p class="text-surface-600-400 pb-8 text-sm">
+			<p class="pb-8 text-sm text-muted-foreground">
 				{#if verifyContext === 'magicLink'}
 					Click the link in your email to sign in instantly.
 				{:else}
@@ -315,13 +318,13 @@
 			</p>
 
 			<!-- Action -->
-			<button type="button" class="btn preset-filled-surface-300-700" onclick={resetToEmailStep}>
+			<Button type="button" variant="secondary" onclick={resetToEmailStep}>
 				Use a different email
-			</button>
+			</Button>
 		</div>
 	{:else}
 		<h5 class="h5 w-full text-left leading-8">{getStepTitle()}</h5>
-		<p class="text-surface-600-400 mt-2 max-w-96 pb-16 text-left text-sm sm:pb-12">
+		<p class="mt-2 max-w-96 pb-16 text-left text-sm text-muted-foreground sm:pb-12">
 			{getStepDescription()}
 		</p>
 
@@ -388,18 +391,23 @@
 
 		{#if showLegal}
 			<div>
-				<p class="text-surface-600-400 mt-10 text-xs">
+				<p class="mt-10 text-xs text-muted-foreground">
 					By continuing, you agree to our
 					{#if showTerms}
-						<a href={termsUrl} rel="external noreferrer" class="anchor text-surface-950-50">Terms</a
+						<a
+							href={termsUrl}
+							rel="external noreferrer"
+							class="text-foreground underline-offset-4 hover:underline">Terms</a
 						>
 					{/if}
 					{#if showTerms && showPrivacy}
 						and
 					{/if}
 					{#if showPrivacy}
-						<a href={privacyUrl} rel="external noreferrer" class="anchor text-surface-950-50"
-							>Privacy Policies</a
+						<a
+							href={privacyUrl}
+							rel="external noreferrer"
+							class="text-foreground underline-offset-4 hover:underline">Privacy Policies</a
 						>
 					{/if}
 				</p>

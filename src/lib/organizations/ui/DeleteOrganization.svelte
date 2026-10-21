@@ -15,6 +15,7 @@
 	// Primitives
 	import { toast } from 'svelte-sonner';
 	import * as Dialog from '../../ui/dialog';
+	import { Button } from '../../ui/button';
 	// Icons
 	import Loader2Icon from '@lucide/svelte/icons/loader-2';
 
@@ -96,10 +97,13 @@
 
 {#if isOwner && activeOrganization}
 	<Dialog.Root bind:open={dialogOpen}>
-		<Dialog.Trigger
-			class="preset-faded-surface-50-950 btn btn-sm text-surface-600-400 hover:bg-error-300-700 hover:text-error-950-50 w-fit justify-between gap-1 text-sm"
-			>Delete organization</Dialog.Trigger
-		>
+		<Dialog.Trigger>
+			{#snippet child({ props })}
+				<Button {...props} variant="destructive" size="sm" class="w-fit justify-between gap-1">
+					Delete organization
+				</Button>
+			{/snippet}
+		</Dialog.Trigger>
 
 		<Dialog.Content class="w-[90%] max-w-md">
 			<Dialog.Header>
@@ -107,22 +111,23 @@
 			</Dialog.Header>
 
 			<article>
-				<div class="text-surface-700-300 space-y-3 text-sm">
+				<div class="space-y-3 text-sm text-muted-foreground">
 					<p>Are you sure you want to delete this organization?</p>
-					<div
-						class="rounded-container border-surface-200-800 bg-surface-200-800 border p-3 text-center"
-					>
-						<span class="text-surface-800-200 font-semibold">{activeOrganization.name}</span>
+					<div class="rounded-md border border-border bg-muted p-3 text-center">
+						<span class="font-semibold text-foreground">{activeOrganization.name}</span>
 					</div>
 					<p>All organization data will be permanently deleted and cannot be recovered.</p>
 				</div>
 			</article>
 
 			<Dialog.Footer class="w-full">
-				<Dialog.Close class="btn preset-tonal" disabled={isDeleting}>Cancel</Dialog.Close>
-				<button
-					type="button"
-					class="btn preset-filled-error-500"
+				<Dialog.Close>
+					{#snippet child({ props })}
+						<Button {...props} variant="secondary" disabled={isDeleting}>Cancel</Button>
+					{/snippet}
+				</Dialog.Close>
+				<Button
+					variant="destructive"
 					onclick={handleConfirm}
 					disabled={isDeleting}
 					aria-busy={isDeleting}
@@ -133,7 +138,7 @@
 					{:else}
 						Delete
 					{/if}
-				</button>
+				</Button>
 			</Dialog.Footer>
 		</Dialog.Content>
 	</Dialog.Root>

@@ -11,10 +11,9 @@ export const createOrganization = mutation({
 	args: {
 		name: v.string(),
 		slug: v.string(),
-		logoId: v.optional(v.id('_storage')),
+		logoUrl: v.optional(v.string()),
 		skipActiveOrganization: v.optional(v.boolean())
 	},
-	// TODO: Change to Id<'organization'> when Convex better-auth supports it
 	handler: async (ctx, args): Promise<string> => {
 		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
@@ -25,7 +24,7 @@ export const createOrganization = mutation({
 			userId: user._id,
 			name: args.name,
 			slug: args.slug,
-			logoId: args.logoId
+			logoUrl: args.logoUrl
 		});
 	}
 });
@@ -35,7 +34,7 @@ export const _createOrganization = internalMutation({
 		userId: v.string(),
 		name: v.string(),
 		slug: v.string(),
-		logoId: v.optional(v.id('_storage')),
+		logoUrl: v.optional(v.string()),
 		skipActiveOrganization: v.optional(v.boolean())
 	},
 	handler: async (ctx, args) => {
@@ -159,14 +158,11 @@ export const deleteOrganization = mutation({
 			throw new ConvexError('No alternative organization found to set as active');
 		}
 
-		// Delete the organization and logo if it exists
+		// Delete the organization
 		await auth.api.deleteOrganization({
 			body: { organizationId: organization.id },
 			headers: await authComponent.getHeaders(ctx)
 		});
-		if (organization.logoId) {
-			await ctx.storage.delete(organization.logoId);
-		}
 
 		// Set the first remaining organization as active
 		await auth.api.setActiveOrganization({
@@ -191,7 +187,7 @@ export const updateOrganizationProfile = mutation({
 	args: {
 		name: v.optional(v.string()),
 		slug: v.optional(v.string()),
-		logoId: v.optional(v.id('_storage'))
+		logoUrl: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
 		const user = await authComponent.safeGetAuthUser(ctx);
@@ -210,7 +206,7 @@ export const updateOrganizationProfile = mutation({
 				organizationId: organization.id,
 				name: args.name,
 				slug: args.slug,
-				logoId: args.logoId
+				logoUrl: args.logoUrl
 			});
 		} catch (error) {
 			if (error instanceof ConvexError) {

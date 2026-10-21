@@ -3,6 +3,7 @@
 	import { authClient } from '#lib/auth/api/auth-client.js';
 	import { page } from '$app/state';
 	import { AUTH_CONSTANTS } from '#convex/auth.constants.js';
+	import { Button } from '#lib/ui/button/index.js';
 
 	let userCode: string = $state('');
 	let verifyLoading = $state(true);
@@ -73,21 +74,21 @@
 		{#if verifyLoading}
 			<p class="opacity-80">Verifying your code…</p>
 		{:else if verifyError}
-			<div class="rounded-container bg-error-50-950 text-error-contrast-50-950 mb-4 p-3">
+			<div class="mb-4 rounded-md bg-destructive/10 p-3 text-destructive">
 				<p>{verifyError}</p>
 			</div>
 			<p class="text-sm opacity-80">
 				Check that you opened this page from the device and that the URL contains a valid code.
 			</p>
 		{:else if actionDone === 'approved'}
-			<div class="rounded-container bg-success-50-950 text-success-contrast-50-950 mb-4 p-3">
+			<div class="mb-4 rounded-md bg-green-500/10 p-3 text-green-600 dark:text-green-400">
 				<p>Success! You approved the request.</p>
 			</div>
 			<p class="opacity-80">
 				You can return to the device now. The device should connect automatically.
 			</p>
 		{:else if actionDone === 'denied'}
-			<div class="rounded-container bg-warning-50-950 text-warning-contrast-50-950 mb-4 p-3">
+			<div class="mb-4 rounded-md bg-amber-500/10 p-3 text-amber-600 dark:text-amber-400">
 				<p>Request denied.</p>
 			</div>
 			<p class="opacity-80">You can close this window.</p>
@@ -95,26 +96,18 @@
 			<p class="mb-6 opacity-80">Do you want to sign in on your device?</p>
 
 			{#if actionError}
-				<div class="rounded-container bg-error-50-950 text-error-contrast-50-950 mb-4 p-3">
+				<div class="mb-4 rounded-md bg-destructive/10 p-3 text-destructive">
 					<p>{actionError}</p>
 				</div>
 			{/if}
 
 			<div class="flex justify-end gap-3">
-				<button
-					class="btn preset-filled-surface-500"
-					onclick={handleDeny}
-					disabled={!!actionLoading}
-				>
+				<Button variant="secondary" onclick={handleDeny} disabled={!!actionLoading}>
 					{actionLoading === 'deny' ? 'Denying…' : 'Deny'}
-				</button>
-				<button
-					class="btn preset-filled-primary-500"
-					onclick={handleApprove}
-					disabled={!!actionLoading}
-				>
+				</Button>
+				<Button onclick={handleApprove} disabled={!!actionLoading}>
 					{actionLoading === 'approve' ? 'Approving…' : 'Approve'}
-				</button>
+				</Button>
 			</div>
 		{/if}
 	{:else}

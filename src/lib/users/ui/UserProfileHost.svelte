@@ -141,18 +141,15 @@
 {#if isAuthenticated && !suppressDialogRender}
 	<Dialog.Root
 		bind:open={userProfile.open}
-		onOpenChange={(status) => {
-			if (!status.open) closeProfileModal();
+		onOpenChange={(open) => {
+			if (!open) closeProfileModal();
 		}}
 	>
 		<Dialog.Content
-			class={`md:rounded-container top-0 left-0 flex h-full max-h-[100dvh] w-full max-w-full translate-x-0 translate-y-0 flex-col items-start rounded-none md:top-[50%] md:left-[50%] md:h-auto md:max-h-[90vh] md:w-auto md:translate-x-[-50%] md:translate-y-[-50%] ${userProfile.suppressTransition ? 'animate-none transition-none duration-0 data-[state=closed]:duration-0 data-[state=open]:duration-0' : ''}`}
+			class={`top-0 left-0 h-full max-h-[100dvh] w-full max-w-full translate-x-0 translate-y-0 rounded-none p-0 sm:max-w-none md:top-1/2 md:left-1/2 md:h-auto md:max-h-[90vh] md:w-[480px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-none ${userProfile.suppressTransition ? 'animate-none transition-none duration-0 data-[state=closed]:duration-0 data-[state=open]:duration-0' : ''}`}
 		>
-			<Dialog.Header>
-				<Dialog.Title>Profile</Dialog.Title>
-			</Dialog.Header>
 			<div
-				class="max-h-[100dvh] w-full overflow-auto overscroll-contain p-6 md:w-[560px]"
+				class="flex max-h-[100dvh] w-full flex-col overflow-auto overscroll-contain md:max-h-[90vh]"
 				onfocusin={(e) => {
 					const el = e.target as HTMLElement | null;
 					if (!el) return;
@@ -160,10 +157,13 @@
 					scheduleScrollIntoView(el);
 				}}
 			>
-				<UserProfile {initialData} />
+				<Dialog.Header class="px-5 pt-5 pr-14 pb-0">
+					<Dialog.Title>Profile</Dialog.Title>
+				</Dialog.Header>
+				<div class="p-5">
+					<UserProfile {initialData} />
+				</div>
 			</div>
-
-			<Dialog.CloseX />
 		</Dialog.Content>
 	</Dialog.Root>
 {/if}

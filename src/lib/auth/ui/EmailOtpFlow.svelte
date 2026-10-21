@@ -6,6 +6,11 @@
 	import { getAuthContext } from '../context.svelte';
 	const { authClient } = getAuthContext();
 
+	// Components
+	import { Input } from '../../ui/input';
+	import { Label } from '../../ui/label';
+	import { Button } from '../../ui/button';
+
 	interface EmailOtpFlowProps {
 		email: string;
 		emailExists: boolean;
@@ -97,23 +102,18 @@
 <form onsubmit={handleSubmit} autocomplete="off" class="flex flex-col gap-8">
 	<!-- Inputs -->
 	<div class="flex flex-col gap-5">
-		<div class="flex flex-col">
-			<label class="label" for="email">Email</label>
-			<input
-				type="email"
-				value={email}
-				disabled
-				class="preset-filled-surface-200 input cursor-not-allowed opacity-60"
-			/>
+		<div class="flex flex-col gap-2">
+			<Label for="email">Email</Label>
+			<Input id="email" type="email" value={email} disabled />
 		</div>
 
 		{#if mode === 'register'}
-			<div class="flex flex-col">
-				<label class="label" for="name">Full Name</label>
-				<input
+			<div class="flex flex-col gap-2">
+				<Label for="name">Full Name</Label>
+				<Input
+					id="name"
 					type="text"
 					bind:value={name}
-					class="preset-filled-surface-200 input"
 					placeholder="Enter your full name"
 					autocomplete="name"
 					required
@@ -122,16 +122,16 @@
 			</div>
 		{/if}
 
-		<div class="flex flex-col">
-			<label class="label" for="otp">Verification Code</label>
-			<input
+		<div class="flex flex-col gap-2">
+			<Label for="otp">Verification Code</Label>
+			<Input
+				id="otp"
 				type="text"
 				bind:value={otp}
-				class="preset-filled-surface-200 input"
 				placeholder="Enter verification code"
 				pattern="[0-9]*"
 				inputmode="numeric"
-				maxlength="6"
+				maxlength={6}
 				autocomplete="one-time-code"
 				required
 				disabled={submitting}
@@ -141,9 +141,9 @@
 
 	<!-- Actions -->
 	<div class="flex flex-col gap-2">
-		<button
+		<Button
 			type="submit"
-			class="btn preset-filled w-full"
+			class="w-full"
 			disabled={submitting || !otp.trim() || (mode === 'register' && !name.trim())}
 		>
 			{#if submitting}
@@ -156,10 +156,10 @@
 			{:else}
 				{mode === 'register' ? 'Create Account' : 'Verify Code'}
 			{/if}
-		</button>
+		</Button>
 
-		<button type="button" class="btn" onclick={onBack} disabled={submitting}>
+		<Button type="button" variant="secondary" onclick={onBack} disabled={submitting}>
 			Use a different email
-		</button>
+		</Button>
 	</div>
 </form>

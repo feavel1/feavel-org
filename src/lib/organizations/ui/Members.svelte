@@ -4,8 +4,10 @@
 	import * as Drawer from '../../ui/drawer';
 	import * as Avatar from '../../ui/avatar';
 	import * as Select from '../../ui/select';
-	import Portal from '../../ui/portal.svelte';
-	import { createListCollection } from '../../ui/collection';
+	import { Input } from '../../ui/input';
+	import { Button } from '../../ui/button';
+	import { Label } from '../../ui/label';
+	import AvatarMarble from '../../ui/avatar/avatar-marble.svelte';
 	import { toast } from 'svelte-sonner';
 	// Icons
 	import SearchIcon from '@lucide/svelte/icons/search';
@@ -72,12 +74,10 @@
 	let isDrawerOpen: boolean = $state(false);
 	let selectedMember: Member | null = $state(null);
 
-	const rolesCollection = createListCollection({
-		items: [
-			{ label: 'Admin', value: 'admin' },
-			{ label: 'Member', value: 'member' }
-		]
-	});
+	const roleOptions: { label: string; value: Role }[] = [
+		{ label: 'Admin', value: 'admin' },
+		{ label: 'Member', value: 'member' }
+	];
 
 	/**
 	 * Filter and sort members based on search query and role
@@ -192,11 +192,13 @@
 		<div class="flex flex-shrink-0 items-center gap-3 py-4">
 			<div class="relative flex-1">
 				<div class="pointer-events-none absolute inset-y-0 flex items-center">
-					<SearchIcon class="text-surface-400-600 size-4" />
+					<SearchIcon
+						class="size-4 text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
+					/>
 				</div>
-				<input
+				<Input
 					type="text"
-					class="w-hug input w-full !border-0 border-transparent pl-6 text-sm"
+					class="w-hug h-9 w-full border-0 pl-6 text-sm"
 					placeholder="Search members..."
 					bind:value={searchQuery}
 				/>
@@ -208,8 +210,10 @@
 			<div class="flex max-h-[calc(100vh-12rem)] flex-col gap-2 overflow-y-auto pb-24">
 				{#each filteredMembers as member (member.id)}
 					<div
-						class={`rounded-container border-surface-200-800 flex items-center justify-between border-b pr-6 pb-4 ${
-							canEditMember(member) ? 'hover:bg-surface-100-900 cursor-pointer' : ''
+						class={`flex items-center justify-between rounded-none border-b border-[color-mix(in_oklch,var(--border)_70%,transparent)] pr-6 pb-4 ${
+							canEditMember(member)
+								? 'cursor-pointer hover:bg-[color-mix(in_oklch,var(--foreground)_5%,transparent)]'
+								: ''
 						}`}
 						onclick={() => handleMemberCardClick(member)}
 						role="button"
@@ -226,7 +230,7 @@
 									<Avatar.Root class="size-10">
 										<Avatar.Image src={member.user.image} alt={member.user.name} />
 										<Avatar.Fallback>
-											<Avatar.Marble name={member.user.name} />
+											<AvatarMarble name={member.user.name} />
 										</Avatar.Fallback>
 									</Avatar.Root>
 								</div>
@@ -235,21 +239,16 @@
 								<div class="flex items-center space-x-2">
 									<span class="font-medium">{member.user.name}</span>
 									{#if member.role === 'owner'}
-										<span
-											class="badge border-primary-200-800 preset-filled-primary-50-950 h-6 border px-2"
-										>
-											Owner
-										</span>
+										<span class="org-pill org-pill--owner"> Owner </span>
 									{/if}
 									{#if member.role === 'admin'}
-										<span
-											class="badge border-warning-200-800 preset-filled-warning-50-950 h-6 border px-2"
-										>
-											Admin
-										</span>
+										<span class="org-pill org-pill--admin"> Admin </span>
 									{/if}
 								</div>
-								<span class="text-surface-700-300 text-sm">{member.user.email}</span>
+								<span
+									class="text-sm text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
+									>{member.user.email}</span
+								>
 							</div>
 						</div>
 						{#if canEditMember(member)}
@@ -265,16 +264,23 @@
 			<div>
 				<!-- Table container with controlled height and scroll -->
 				<div
-					class=" max-h-[calc(90vh-12rem)] overflow-hidden overflow-y-auto pb-12 sm:max-h-[calc(80vh-12rem)] md:max-h-[calc(70vh-12rem)]"
+					class="max-h-[calc(90vh-12rem)] overflow-hidden overflow-y-auto pb-12 sm:max-h-[calc(80vh-12rem)] md:max-h-[calc(70vh-12rem)]"
 				>
 					<table class="table w-full !table-fixed">
 						<thead class="sticky top-0 z-20">
 							<tr>
-								<th class="text-surface-600-400 !w-48 p-2 !pl-3 text-left text-xs font-semibold"
+								<th
+									class="!w-48 p-2 !pl-3 text-left text-xs font-semibold text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
 									>Name</th
 								>
-								<th class="text-surface-600-400 hidden p-2 text-left text-xs sm:flex">Email</th>
-								<th class="text-surface-600-400 !w-32 p-2 text-left text-xs">Role</th>
+								<th
+									class="hidden p-2 text-left text-xs text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))] sm:flex"
+									>Email</th
+								>
+								<th
+									class="!w-32 p-2 text-left text-xs text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
+									>Role</th
+								>
 								{#if isOwnerOrAdmin}
 									<th class="!w-16 p-2 text-right"></th>
 								{/if}
@@ -282,7 +288,7 @@
 						</thead>
 						<tbody>
 							{#each filteredMembers as member (member.id)}
-								<tr class="!border-surface-300-700 !border-t">
+								<tr class="!border-t !border-[color-mix(in_oklch,var(--border)_70%,transparent)]">
 									<!-- Member Name -->
 									<td class="!w-48 !max-w-48 !truncate !py-3 !pl-3">
 										<div class="flex items-center space-x-2">
@@ -291,7 +297,7 @@
 													<Avatar.Root class="size-8 sm:size-5">
 														<Avatar.Image src={member.user.image} alt={member.user.name} />
 														<Avatar.Fallback>
-															<Avatar.Marble name={member.user.name} />
+															<AvatarMarble name={member.user.name} />
 														</Avatar.Fallback>
 													</Avatar.Root>
 												</div>
@@ -300,14 +306,18 @@
 											<div class="flex flex-col truncate">
 												<span class="truncate text-sm">{member.user.name}</span>
 												<!-- Email visible only on mobile (hidden on sm and above) -->
-												<span class="text-surface-700-300 truncate text-xs sm:hidden">
+												<span
+													class="truncate text-xs text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))] sm:hidden"
+												>
 													{member.user.email}
 												</span>
 											</div>
 										</div>
 									</td>
 									<!-- Member Email -->
-									<td class="!text-surface-600-400 hidden !h-fit !w-full !truncate sm:table-cell">
+									<td
+										class="hidden !h-fit !w-full !truncate !text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))] sm:table-cell"
+									>
 										{member.user.email}
 									</td>
 									<!-- Member Role -->
@@ -315,37 +325,29 @@
 										<div class="flex items-center">
 											{#if isOwnerOrAdmin && member.id !== activeUser?._id && member.role !== 'owner'}
 												<Select.Root
-													collection={rolesCollection}
-													value={[member.role]}
-													onSelect={(e) => handleUpdateRole(member.id, e.value as Role)}
+													type="single"
+													value={member.role}
+													onValueChange={(value: string) =>
+														handleUpdateRole(member.id, value as Role)}
 												>
-													<Select.Trigger class="w-full text-sm" />
-													<Portal>
-														<Select.Content>
-															{#each rolesCollection.items as item (item.value)}
-																<Select.Item {item}>
-																	<Select.ItemText>{item.label}</Select.ItemText>
-																	<Select.ItemIndicator>✓</Select.ItemIndicator>
-																</Select.Item>
-															{/each}
-														</Select.Content>
-													</Portal>
+													<Select.Trigger class="w-full text-sm">
+														<Select.Value />
+													</Select.Trigger>
+													<Select.Content>
+														{#each roleOptions as option (option.value)}
+															<Select.Item value={option.value} label={option.label}>
+																{option.label}
+															</Select.Item>
+														{/each}
+													</Select.Content>
 												</Select.Root>
 											{:else if member.role === 'owner'}
-												<span
-													class="badge border-primary-200-800 preset-filled-primary-50-950 h-7 border px-2"
-												>
-													Owner
-												</span>
+												<span class="org-pill org-pill--owner"> Owner </span>
 											{:else if member.role === 'admin'}
-												<span
-													class="badge border-warning-200-800 preset-filled-warning-50-950 h-7 border px-2"
-												>
-													Admin
-												</span>
+												<span class="org-pill org-pill--admin"> Admin </span>
 											{:else}
 												<span
-													class="badge border-surface-400-600 preset-filled-surface-300-700 h-7 border px-2"
+													class="h-7 border border-[color-mix(in_oklch,var(--foreground)_22%,transparent)] bg-[color-mix(in_oklch,var(--foreground)_8%,transparent)] px-2"
 												>
 													Member
 												</span>
@@ -356,16 +358,19 @@
 									<td class="!w-16">
 										<div class="flex justify-end space-x-2">
 											{#if isOwnerOrAdmin && member.id !== activeUser?._id && member.role !== 'owner'}
-												<button
+												<Button
 													type="button"
-													class="btn-icon preset-filled-surface-200-800 hover:preset-filled-error-300-700"
+													variant="ghost"
+													size="icon"
+													aria-label={`Remove ${member.user.name}`}
+													class="hover:bg-destructive/10 hover:text-destructive"
 													onclick={() => {
 														selectedUserId = member.id;
 														isDialogOpen = true;
 													}}
 												>
 													<TrashIcon class="size-4 opacity-70" />
-												</button>
+												</Button>
 											{/if}
 										</div>
 									</td>
@@ -390,12 +395,10 @@
 				</Dialog.Description>
 
 				<Dialog.Footer class="flex-shrink-0">
-					<button type="button" class="btn preset-tonal" onclick={() => (isDialogOpen = false)}>
+					<Button type="button" variant="secondary" onclick={() => (isDialogOpen = false)}>
 						Cancel
-					</button>
-					<button type="button" class="btn preset-filled-error-500" onclick={handleRemoveMember}>
-						Confirm
-					</button>
+					</Button>
+					<Button type="button" variant="destructive" onclick={handleRemoveMember}>Confirm</Button>
 				</Dialog.Footer>
 			</Dialog.Content>
 		</Dialog.Root>
@@ -415,46 +418,50 @@
 									<Avatar.Root class="size-12">
 										<Avatar.Image src={selectedMember.user.image} alt={selectedMember.user.name} />
 										<Avatar.Fallback>
-											<Avatar.Marble name={selectedMember.user.name} />
+											<AvatarMarble name={selectedMember.user.name} />
 										</Avatar.Fallback>
 									</Avatar.Root>
 								</div>
 							</div>
 							<div class="flex flex-col">
 								<span>{selectedMember.user.name}</span>
-								<p class="text-surface-700-300 text-sm">{selectedMember.user.email}</p>
+								<p
+									class="text-sm text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
+								>
+									{selectedMember.user.email}
+								</p>
 							</div>
 						</div>
 
 						<!-- Actions -->
 						<div class="flex flex-col gap-3">
 							<!-- Role Select -->
-							<label class="flex-1">
-								<span class="label">Role</span>
+							<div class="flex flex-1 flex-col gap-2">
+								<Label for="member-role">Role</Label>
 								<Select.Root
-									collection={rolesCollection}
-									value={[selectedMember.role]}
-									onSelect={(e) => handleUpdateRole(selectedMember!.id, e.value as Role)}
+									type="single"
+									value={selectedMember.role}
+									onValueChange={(value: string) =>
+										handleUpdateRole(selectedMember!.id, value as Role)}
 								>
-									<Select.Trigger class="w-full" placeholder="Select role" />
-									<Portal>
-										<Select.Content>
-											{#each rolesCollection.items as item (item.value)}
-												<Select.Item {item}>
-													<Select.ItemText>{item.label}</Select.ItemText>
-													<Select.ItemIndicator>✓</Select.ItemIndicator>
-												</Select.Item>
-											{/each}
-										</Select.Content>
-									</Portal>
+									<Select.Trigger id="member-role" class="w-full">
+										<Select.Value />
+									</Select.Trigger>
+									<Select.Content>
+										{#each roleOptions as option (option.value)}
+											<Select.Item value={option.value} label={option.label}>
+												{option.label}
+											</Select.Item>
+										{/each}
+									</Select.Content>
 								</Select.Root>
-							</label>
+							</div>
 
 							<!-- Remove Button -->
 							<div class="flex flex-col justify-end">
-								<button
+								<Button
 									type="button"
-									class="btn preset-filled-surface-300-700"
+									variant="destructive"
 									onclick={() => {
 										selectedUserId = selectedMember!.id;
 										isDrawerOpen = false;
@@ -462,11 +469,15 @@
 									}}
 								>
 									<TrashIcon class="size-4" /> Remove
-								</button>
+								</Button>
 							</div>
 						</div>
 					{:else}
-						<div class="p-4 text-center text-surface-500">No member selected</div>
+						<div
+							class="p-4 text-center text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
+						>
+							No member selected
+						</div>
 					{/if}
 				</div></Drawer.Content
 			>
@@ -477,3 +488,31 @@
 {:else}
 	<div>Loading members...</div>
 {/if}
+
+<style>
+	/* Role pills — micro-caps, hairline, zero radius (Weathered Wall system). */
+	.org-pill {
+		display: inline-flex;
+		align-items: center;
+		height: 1.125rem;
+		padding: 0 0.3125rem;
+		border: 1px solid color-mix(in oklch, var(--foreground) 22%, transparent);
+		border-radius: 0;
+		font-size: 0.5rem;
+		font-weight: 400;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		line-height: 1;
+		white-space: nowrap;
+		color: var(--foreground);
+	}
+	.org-pill--owner {
+		background: var(--foreground);
+		border-color: var(--foreground);
+		color: var(--background);
+	}
+	.org-pill--admin {
+		background: transparent;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+	}
+</style>

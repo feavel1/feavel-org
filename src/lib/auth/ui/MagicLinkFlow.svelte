@@ -6,6 +6,11 @@
 	import { getAuthContext } from '../context.svelte';
 	const { authClient } = getAuthContext();
 
+	// Components
+	import { Input } from '../../ui/input';
+	import { Label } from '../../ui/label';
+	import { Button } from '../../ui/button';
+
 	interface MagicLinkFlowProps {
 		email: string;
 		onBack: () => void;
@@ -73,21 +78,16 @@
 
 <form onsubmit={handleSubmit} autocomplete="off" class="flex flex-col gap-4">
 	<div class="flex flex-col gap-2">
-		<label class="label" for="email">Email</label>
-		<input
-			type="email"
-			value={email}
-			disabled
-			class="preset-filled-surface-200 input cursor-not-allowed opacity-60"
-		/>
+		<Label for="email">Email</Label>
+		<Input id="email" type="email" value={email} disabled />
 	</div>
 
-	<div class="flex flex-col">
-		<label class="label" for="name">Full Name</label>
-		<input
+	<div class="flex flex-col gap-2">
+		<Label for="name">Full Name</Label>
+		<Input
+			id="name"
 			type="text"
 			bind:value={name}
-			class="preset-filled-surface-200 input"
 			placeholder="Enter your full name"
 			autocomplete="name"
 			required
@@ -95,7 +95,7 @@
 		/>
 	</div>
 
-	<button type="submit" class="btn preset-filled w-full" disabled={submitting || !name.trim()}>
+	<Button type="submit" class="w-full" disabled={submitting || !name.trim()}>
 		{#if submitting}
 			<div class="flex items-center gap-2">
 				<div
@@ -106,9 +106,9 @@
 		{:else}
 			Send Magic Link
 		{/if}
-	</button>
+	</Button>
 
-	<button type="button" class="btn" onclick={onBack} disabled={submitting}>
-		Use a different email
-	</button>
+	<Button type="button" variant="secondary" onclick={onBack} disabled={submitting}
+		>Use a different email</Button
+	>
 </form>

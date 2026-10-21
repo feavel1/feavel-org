@@ -1,6 +1,8 @@
 <script lang="ts">
 	// Primitives
 	import * as Dialog from '../../ui/dialog';
+	import { Input } from '../../ui/input';
+	import { Button } from '../../ui/button';
 	import { toast } from 'svelte-sonner';
 	// Icons
 	import SearchIcon from '@lucide/svelte/icons/search';
@@ -122,7 +124,9 @@
 {#if !invitationList}
 	<div>Loading invitations...</div>
 {:else if filteredInvitations.length === 0 && !searchQuery}
-	<div class="text-surface-600-400 p-8 text-center">
+	<div
+		class="p-8 text-center text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
+	>
 		<p>No pending invitations.</p>
 	</div>
 {:else}
@@ -131,11 +135,13 @@
 		<div class="flex flex-shrink-0 items-center gap-3 py-4">
 			<div class="relative flex-1">
 				<div class="pointer-events-none absolute inset-y-0 flex items-center">
-					<SearchIcon class="text-surface-400-600 size-4" />
+					<SearchIcon
+						class="size-4 text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
+					/>
 				</div>
-				<input
+				<Input
 					type="text"
-					class="w-hug input w-full !border-0 !border-transparent pl-6 text-sm"
+					class="w-hug h-9 w-full border-0 pl-6 text-sm"
 					placeholder="Search invitations..."
 					value={searchQuery}
 					onchange={handleSearchChange}
@@ -146,7 +152,9 @@
 		<!-- Table Section - Scrollable area -->
 		<div class="min-h-0 flex-1">
 			{#if filteredInvitations.length === 0 && searchQuery}
-				<div class="text-surface-600-400 p-8 text-center">
+				<div
+					class="p-8 text-center text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
+				>
 					<p>No invitations match your search.</p>
 				</div>
 			{:else}
@@ -156,13 +164,23 @@
 						class="max-h-[calc(90vh-12rem)] overflow-y-auto pb-12 sm:max-h-[calc(80vh-12rem)] md:max-h-[calc(70vh-12rem)]"
 					>
 						<table class="table w-full !table-fixed">
-							<thead class="border-surface-300-700 sticky top-0 z-20 border-b">
+							<thead
+								class="sticky top-0 z-20 border-b border-[color-mix(in_oklch,var(--border)_70%,transparent)]"
+							>
 								<tr>
-									<th class="text-surface-700-300 w-64 truncate p-2 !pl-0 text-left text-xs">
+									<th
+										class="w-64 truncate p-2 !pl-0 text-left text-xs text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
+									>
 										User
 									</th>
-									<th class="text-surface-700-300 w-32 p-2 !pl-0 text-left text-xs"> Expires </th>
-									<th class="text-surface-700-300 hidden w-32 p-2 text-left text-xs sm:table-cell">
+									<th
+										class="w-32 p-2 !pl-0 text-left text-xs text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
+									>
+										Expires
+									</th>
+									<th
+										class="hidden w-32 p-2 text-left text-xs text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))] sm:table-cell"
+									>
 										Role
 									</th>
 									{#if isOwnerOrAdmin}
@@ -172,7 +190,7 @@
 							</thead>
 							<tbody>
 								{#each filteredInvitations as invitation (invitation.id)}
-									<tr class="!border-surface-300-700 !border-t">
+									<tr class="!border-t !border-[color-mix(in_oklch,var(--border)_70%,transparent)]">
 										<!-- User -->
 										<td class="!w-64 !max-w-64 !truncate !py-3 !pl-0">
 											<span class="truncate font-medium">{invitation.email}</span>
@@ -184,23 +202,17 @@
 											</span>
 										</td>
 										<!-- Role -->
-										<td class="!text-surface-700-300 hidden !w-32 sm:table-cell">
+										<td
+											class="hidden !w-32 !text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))] sm:table-cell"
+										>
 											<div class="flex items-center">
 												{#if invitation.role === 'owner'}
-													<span
-														class="badge border-primary-200-800 preset-filled-primary-50-950 h-6 border px-2"
-													>
-														Owner
-													</span>
+													<span class="org-pill org-pill--owner"> Owner </span>
 												{:else if invitation.role === 'admin'}
-													<span
-														class="badge border-warning-200-800 preset-filled-warning-50-950 h-6 border px-2"
-													>
-														Admin
-													</span>
+													<span class="org-pill org-pill--admin"> Admin </span>
 												{:else}
 													<span
-														class="badge border-surface-400-600 preset-filled-surface-300-700 h-6 border px-2"
+														class="h-6 border border-[color-mix(in_oklch,var(--foreground)_22%,transparent)] bg-[color-mix(in_oklch,var(--foreground)_8%,transparent)] px-2"
 													>
 														Member
 													</span>
@@ -211,16 +223,17 @@
 										<td class="!w-20">
 											<div class="flex justify-end">
 												{#if isOwnerOrAdmin}
-													<button
+													<Button
 														type="button"
-														class="btn btn-sm preset-filled-surface-300-700"
+														variant="secondary"
+														size="sm"
 														onclick={() => {
 															selectedInvitationId = invitation.id;
 															isRevokeDialogOpen = true;
 														}}
 													>
 														Revoke
-													</button>
+													</Button>
 												{/if}
 											</div>
 										</td>
@@ -252,18 +265,18 @@
 			</article>
 
 			<Dialog.Footer class="w-full flex-shrink-0 p-6">
-				<button
+				<Button
 					type="button"
-					class="btn preset-tonal"
+					variant="secondary"
 					disabled={isRevoking}
 					onclick={() => (isRevokeDialogOpen = false)}
 				>
 					Cancel
-				</button>
+				</Button>
 
-				<button
+				<Button
 					type="button"
-					class="btn preset-filled-error-500"
+					variant="destructive"
 					onclick={handleRevokeInvitation}
 					disabled={isRevoking}
 					aria-busy={isRevoking}
@@ -274,8 +287,36 @@
 					{:else}
 						Confirm
 					{/if}
-				</button>
+				</Button>
 			</Dialog.Footer>
 		</Dialog.Content>
 	</Dialog.Root>
 {/if}
+
+<style>
+	/* Role pills — micro-caps, hairline, zero radius (Weathered Wall system). */
+	.org-pill {
+		display: inline-flex;
+		align-items: center;
+		height: 1.125rem;
+		padding: 0 0.3125rem;
+		border: 1px solid color-mix(in oklch, var(--foreground) 22%, transparent);
+		border-radius: 0;
+		font-size: 0.5rem;
+		font-weight: 400;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		line-height: 1;
+		white-space: nowrap;
+		color: var(--foreground);
+	}
+	.org-pill--owner {
+		background: var(--foreground);
+		border-color: var(--foreground);
+		color: var(--background);
+	}
+	.org-pill--admin {
+		background: transparent;
+		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
+	}
+</style>

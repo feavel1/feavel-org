@@ -7,6 +7,7 @@
 
 	// Auth
 	import { authClient } from '#lib/auth/api/auth-client.js';
+	import { Button } from '#lib/ui/button/index.js';
 
 	// Icons
 	import CheckCircle2Icon from '@lucide/svelte/icons/check-circle-2';
@@ -67,21 +68,21 @@
 			<div class="flex flex-col items-center gap-4">
 				<CheckCircle2Icon class="size-10" />
 				<h1 class="text-lg font-semibold">Invitation accepted</h1>
-				<p class="text-sm opacity-60">Redirecting to dashboard…</p>
+				<p class="text-sm text-muted-foreground">Redirecting to dashboard…</p>
 			</div>
 		{:else if error}
 			<div class="flex flex-col items-center gap-4">
 				<TriangleAlertIcon class="size-10" />
 				<h1 class="text-lg font-semibold">Couldn't accept invitation</h1>
 				<p class="text-sm opacity-80">{error}</p>
-				<a class="btn preset-tonal hover:preset-filled" href={resolve('/')}>Go to Home</a>
+				<Button variant="secondary" href={resolve('/')}>Go to Home</Button>
 			</div>
 		{:else if !invitationId}
 			<div class="flex flex-col items-center gap-4">
 				<TriangleAlertIcon class="size-10" />
 				<h1 class="text-lg font-semibold">Invalid invite link</h1>
-				<p class="text-sm opacity-60">Please use a valid invite link.</p>
-				<a class="btn preset-tonal hover:preset-filled" href={resolve('/')}>Go to Home</a>
+				<p class="text-sm text-muted-foreground">Please use a valid invite link.</p>
+				<Button variant="secondary" href={resolve('/')}>Go to Home</Button>
 			</div>
 		{/if}
 	</div>

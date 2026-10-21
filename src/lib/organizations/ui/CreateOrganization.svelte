@@ -13,6 +13,9 @@
 	import Loader2Icon from '@lucide/svelte/icons/loader-2';
 	// Primitives
 	import { toast } from 'svelte-sonner';
+	import { Button } from '../../ui/button';
+	import { Input } from '../../ui/input';
+	import { Label } from '../../ui/label';
 	import * as Avatar from '../../ui/avatar';
 	import * as ImageCropper from '../../ui/image-cropper';
 	import { getFileFromUrl } from '../../ui/image-cropper';
@@ -29,7 +32,6 @@
 	const client = useConvexClient();
 
 	// Types
-	import type { GenericId } from 'convex/values';
 	import type { Path } from '$app/types';
 
 	// Auth state
@@ -139,21 +141,20 @@
 		isCreating = true;
 
 		try {
-			let logoStorageId: GenericId<'_storage'> | undefined = undefined;
+			let logoUrl: string | undefined = undefined;
 
 			// Upload the logo if one was selected
 			if (logoFile) {
-				const uploadUrl = await client.mutation(api.storage.generateUploadUrl, {});
+				const { url: uploadUrl, key } = await client.mutation(api.r2.genUploadUrl, {
+					prefix: 'logos'
+				});
 				const response = await fetch(uploadUrl, {
-					method: 'POST',
-					headers: {
-						'Content-Type': logoFile.type
-					},
+					method: 'PUT',
+					headers: { 'Content-Type': logoFile.type },
 					body: logoFile
 				});
 				if (!response.ok) throw new Error('Failed to upload file');
-				const { storageId } = (await response.json()) as { storageId: GenericId<'_storage'> };
-				logoStorageId = storageId;
+				logoUrl = `https://storage.feavel.com/${key}`;
 			}
 
 			const currentUrl = new SvelteURL(window.location.href);
@@ -164,7 +165,7 @@
 			await client.mutation(api.organizations.mutations.createOrganization, {
 				name,
 				slug,
-				logoId: logoStorageId
+				logoUrl
 			});
 			toast.success('Organization created successfully!');
 			// Call the onSuccessfulCreate callback if provided
@@ -212,20 +213,24 @@
 <!-- Show loading state -->
 {#if isLoading}
 	<div class="mx-auto w-full max-w-md animate-pulse">
-		<div class="placeholder mb-4 h-8 w-full"></div>
-		<div class="placeholder mb-4 h-40 w-full"></div>
-		<div class="placeholder mb-2 h-10 w-full"></div>
-		<div class="placeholder h-10 w-full"></div>
+		<div class="mb-4 h-8 w-full animate-pulse rounded-md bg-muted"></div>
+		<div class="mb-4 h-40 w-full animate-pulse rounded-md bg-muted"></div>
+		<div class="mb-2 h-10 w-full animate-pulse rounded-md bg-muted"></div>
+		<div class="h-10 w-full animate-pulse rounded-md bg-muted"></div>
 	</div>
 
 	<!-- Show message for unauthenticated users -->
 {:else if !isAuthenticated}
 	<div
-		class="rounded-container border-surface-200-800 mx-auto w-full max-w-md border p-6 text-center"
+		class="mx-auto w-full max-w-md rounded-none border border-[color-mix(in_oklch,var(--border)_70%,transparent)] p-6 text-center"
 	>
-		<LogInIcon class="text-surface-400-600 mx-auto mb-4 size-10" />
+		<LogInIcon
+			class="mx-auto mb-4 size-10 text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
+		/>
 		<h2 class="mb-2 text-xl font-semibold">Authentication Required</h2>
-		<p class="text-surface-600-400 mb-4">Please sign in to create an organization</p>
+		<p class="mb-4 text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]">
+			Please sign in to create an organization
+		</p>
 	</div>
 
 	<!-- Show the form for authenticated users -->
@@ -234,19 +239,19 @@
 		<div class="my-6">
 			<ImageCropper.Root bind:src={cropSrc} accept="image/*" onCropped={handleCropped}>
 				<ImageCropper.UploadTrigger>
-					<div
-						class="rounded-container relative size-20 cursor-pointer transition-all duration-200"
-					>
-						<Avatar.Root class="rounded-container size-20">
+					<div class="relative size-20 cursor-pointer rounded-none transition-all duration-200">
+						<Avatar.Root class="size-20 rounded-none">
 							<Avatar.Image src={logo} alt={name.length > 0 ? name : 'My Organization'} />
 							<Avatar.Fallback
-								class="rounded-container bg-surface-300-700 hover:bg-surface-400-600/80 duration-150 ease-in-out"
+								class="rounded-none bg-[color-mix(in_oklch,var(--foreground)_4%,transparent)] duration-150 ease-in-out hover:bg-[color-mix(in_oklch,var(--foreground)_5%,transparent)]"
 							>
-								<Building2Icon class="text-surface-700-300 size-10" />
+								<Building2Icon
+									class="size-10 text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
+								/>
 							</Avatar.Fallback>
 						</Avatar.Root>
 						<div
-							class="preset-filled-surface-300-700 ring-surface-50-950 dark:ring-surface-100-900 absolute -right-1.5 -bottom-1.5 flex size-3 items-center justify-center rounded-full ring-4"
+							class="absolute -right-1.5 -bottom-1.5 flex size-3 items-center justify-center rounded-full bg-[color-mix(in_oklch,var(--foreground)_8%,transparent)] ring-4 ring-[var(--popover)] dark:ring-[color-mix(in_oklch,var(--border)_70%,transparent)]"
 						>
 							<PencilIcon class="size-4" />
 						</div>
@@ -264,45 +269,40 @@
 
 		<div class="flex flex-col gap-5">
 			<div>
-				<label for="name" class="label">Name</label>
-				<input
+				<Label for="name">Name</Label>
+				<Input
 					type="text"
 					id="name"
 					value={name}
 					oninput={handleNameInput}
 					required
-					class="input w-full"
+					class="mt-2"
 					placeholder="My Organization..."
 				/>
 			</div>
 			<div>
-				<label for="slug" class="label">Slug URL</label>
-				<input
+				<Label for="slug">Slug URL</Label>
+				<Input
 					type="text"
 					id="slug"
 					value={slug}
 					oninput={(e) => (slug = (e.target as HTMLInputElement).value)}
 					required
-					class="input w-full"
+					class="mt-2"
 					placeholder="my-organization"
 				/>
 			</div>
 		</div>
 
 		<div class="flex justify-end gap-2 pt-6 md:flex-row">
-			<button
-				type="submit"
-				class="btn preset-filled-primary-500"
-				disabled={isCreating}
-				aria-busy={isCreating}
-			>
+			<Button type="submit" disabled={isCreating} aria-busy={isCreating}>
 				{#if isCreating}
 					<Loader2Icon class="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
 					Creating...
 				{:else}
 					Create Organization
 				{/if}
-			</button>
+			</Button>
 		</div>
 	</form>
 {/if}

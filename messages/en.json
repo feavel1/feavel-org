@@ -1,4 +1,23 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
-	"hello_world": "Hello, {name} from en!"
+	"hello_world": "Hello, {name} from en!",
+	"mellow_awful_kudu_boost": "A producer who ships code. A developer fluent in three languages. A translator who hears the\n\t\t\tmusic behind the words.",
+	"wild_super_monkey_express": "What I offer",
+	"fierce_roo_ramp": "Get in touch",
+	"brisk_mink_mesh": "Every project starts with a conversation.",
+	"trim_yak_spray": "Three disciplines. One workshop.",
+	"wild_trout_dip": "Tic-tac-toe and chess — two-player hot-seat games with Convex reactivity.",
+	"ready_mole_swing": "Play a game",
+	"sharp_snipe_twist": "Articles, tutorials, essays. Browse by category, unlock paywalled content.",
+	"zealous_dolphin_twirl": "Read the posts",
+	"plumb_monkey_forge": "音乐 · 代码 · 语言",
+	"thin_koala_dock": "Games",
+	"blank_quail_drift": "Services",
+	"jolly_gazelle_surge": "Posts",
+	"jolly_falcon_hop": "feavel@email.com",
+	"rapid_duck_flip": "Loading more...",
+	"wise_seal_knit": "Load more",
+	"bland_trout_flock": "Try different filters or press ⌘K to search",
+	"solid_trout_place": "No posts found",
+	"long_lemur_clap": "Posts — Feavel"
 }

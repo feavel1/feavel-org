@@ -12,11 +12,16 @@
 	// UI Components
 	// Primitives
 	import * as Select from '../../ui/select';
-	import { createListCollection } from '../../ui/collection';
 	import * as Dialog from '../../ui/dialog';
 	import * as Drawer from '../../ui/drawer';
 	import * as Password from '../../ui/password';
 	import { toast } from 'svelte-sonner';
+
+	// UI Components
+	// Controls
+	import { Input } from '../../ui/input';
+	import { Button } from '../../ui/button';
+	import { Label } from '../../ui/label';
 
 	// Icons
 	import {
@@ -163,16 +168,6 @@
 	const getProviderIcon = (provider: string) => {
 		return providerIconMap[provider] ?? LockIcon;
 	};
-
-	// Providers select collection (derived from available providers)
-	const providersCollection = $derived(
-		createListCollection({
-			items: availableProviders.map((provider) => ({
-				label: getProviderLabel(provider),
-				value: provider
-			}))
-		})
-	);
 
 	const getProviderLabel = (provider: string) => {
 		switch (provider) {
@@ -406,24 +401,25 @@
 <div class="flex w-full flex-col gap-3 pb-6">
 	<!-- Current Accounts -->
 	<div>
-		<span class="text-surface-600-400 text-xs">Linked Accounts</span>
+		<span class="text-xs text-muted-foreground">Linked Accounts</span>
 		{#if accountList && accountList.length > 0}
-			<div class="flex flex-col gap-3 pt-3">
+			<div class="mt-2 flex flex-col divide-y divide-border rounded-lg border border-border">
 				{#each accountList as account (account.id)}
 					{@const ProviderIcon = getProviderIcon(account.providerId)}
 
-					<div class="rounded-container border-surface-300-700 flex w-full flex-col border p-3">
-						<div class="flex w-full flex-row items-center justify-between">
-							<div class="flex items-center gap-3 pl-1">
+					<div class="flex w-full flex-col px-3 py-1.5">
+						<div class="flex w-full flex-row items-center justify-between gap-2">
+							<div class="flex min-w-0 items-center gap-2">
 								<ProviderIcon size={16} />
-								<div class="text-sm font-medium">
+								<div class="truncate text-sm">
 									{getProviderLabel(account.providerId)}
 								</div>
 							</div>
-							<div class="flex items-center">
+							<div class="flex shrink-0 items-center gap-1">
 								{#if account.providerId === 'credential'}
-									<button
-										class="btn btn-sm preset-tonal mr-2"
+									<Button
+										variant="secondary"
+										size="sm"
 										onclick={async () => {
 											isEditingPasswordInline = true;
 											currentPassword = '';
@@ -433,11 +429,16 @@
 										}}
 									>
 										Update
-									</button>
+									</Button>
 								{/if}
 								{#if accountList.length > 1}
-									<button
-										class="preset-faded-surface-50-950 btn-icon hover:bg-error-300-700 hover:text-error-950-50"
+									<Button
+										variant="ghost"
+										size="icon-sm"
+										class="text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
+										aria-label={unlinkingAccountId === account.id
+											? 'Unlinking account'
+											: `Unlink ${getProviderLabel(account.providerId)} account`}
 										disabled={unlinkingAccountId === account.id}
 										onclick={() => unlinkAccount(account.accountId, account.providerId)}
 									>
@@ -446,7 +447,7 @@
 										{:else}
 											<Trash2Icon class="size-4" />
 										{/if}
-									</button>
+									</Button>
 								{/if}
 							</div>
 						</div>
@@ -466,33 +467,43 @@
 										onsubmit={handleChangePasswordSubmit}
 										class="flex w-full flex-col gap-3 pt-4"
 									>
-										<input
-											bind:this={currentPasswordInputEl}
-											type="password"
-											class="input w-full"
-											bind:value={currentPassword}
-											placeholder="Enter your current password"
-											autocomplete="current-password"
-											required
-											disabled={isChangingPassword}
-										/>
-										<Password.Root>
-											<Password.Input
-												bind:value={newPassword}
-												placeholder="Enter your new password"
-												autocomplete="new-password"
+										<div class="flex flex-col gap-2">
+											<Label for="current-password">Current password</Label>
+											<Input
+												bind:ref={currentPasswordInputEl}
+												id="current-password"
+												type="password"
+												class="w-full"
+												bind:value={currentPassword}
+												placeholder="Enter your current password"
+												autocomplete="current-password"
 												required
 												disabled={isChangingPassword}
-											>
-												<Password.ToggleVisibility />
-											</Password.Input>
-											<Password.Error />
-											<Password.Strength />
-										</Password.Root>
+											/>
+										</div>
+										<div class="flex flex-col gap-2">
+											<Label for="new-password">New password</Label>
+											<Password.Root>
+												<Password.Input
+													id="new-password"
+													bind:value={newPassword}
+													placeholder="Enter your new password"
+													autocomplete="new-password"
+													required
+													disabled={isChangingPassword}
+												>
+													<Password.ToggleVisibility />
+												</Password.Input>
+												<Password.Error />
+												<Password.Strength />
+											</Password.Root>
+										</div>
 										<div class="flex gap-1.5">
-											<button
+											<Button
 												type="button"
-												class="btn btn-sm preset-tonal w-full"
+												variant="secondary"
+												size="sm"
+												class="w-full"
 												onclick={() => {
 													currentPassword = '';
 													newPassword = '';
@@ -501,14 +512,15 @@
 												disabled={isChangingPassword}
 											>
 												Cancel
-											</button>
-											<button
+											</Button>
+											<Button
 												type="submit"
-												class="btn btn-sm preset-filled-primary-500 w-full"
+												size="sm"
+												class="w-full"
 												disabled={isChangingPassword || !currentPassword || !newPassword}
 											>
 												{isChangingPassword ? 'Changing...' : 'Change Password'}
-											</button>
+											</Button>
 										</div>
 									</form>
 								</div>
@@ -518,27 +530,37 @@
 				{/each}
 			</div>
 		{:else}
-			<div class="text-surface-600-400 mt-2 text-sm">No accounts found</div>
+			<div
+				class="mt-2 text-sm text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
+			>
+				No accounts found
+			</div>
 		{/if}
 	</div>
 
 	<!-- Link New Account -->
 	{#if availableProviders.length > 0}
 		<div>
-			<Select.Root collection={providersCollection} onSelect={(e) => linkAccount(String(e.value))}>
-				<Select.Trigger class="w-full" placeholder="Link new account" />
+			<Select.Root type="single" onValueChange={(value) => linkAccount(value)}>
+				<Select.Trigger class="w-full">
+					<Select.Value placeholder="Link new account" />
+				</Select.Trigger>
 				<Select.Content>
-					{#each providersCollection.items as item (item.value)}
-						{@const ProviderIcon = getProviderIcon(item.value)}
-						<Select.Item {item}>
+					{#each availableProviders as provider (provider)}
+						{@const ProviderIcon = getProviderIcon(provider)}
+						<Select.Item value={provider} label={getProviderLabel(provider)}>
 							<ProviderIcon size={16} />
-							<Select.ItemText>{item.label}</Select.ItemText>
+							{getProviderLabel(provider)}
 						</Select.Item>
 					{/each}
 				</Select.Content>
 			</Select.Root>
 			{#if isLinking}
-				<p class="text-surface-600-400 mt-2 text-sm">Linking account...</p>
+				<p
+					class="mt-2 text-sm text-[color-mix(in_oklch,var(--foreground)_18%,var(--muted-foreground))]"
+				>
+					Linking account...
+				</p>
 			{/if}
 		</div>
 	{/if}
@@ -561,33 +583,37 @@
 			</Dialog.Header>
 			<form onsubmit={handlePasswordSubmit} class="w-full">
 				<div class="flex flex-col">
-					<label class="flex flex-col gap-2">
-						<span class="text-sm font-medium">Password</span>
+					<div class="flex flex-col gap-2">
+						<Label for="set-password-dialog">Password</Label>
 						<Password.Root>
-							<Password.Input bind:value={password} placeholder="Enter your password" required>
+							<Password.Input
+								id="set-password-dialog"
+								bind:value={password}
+								placeholder="Enter your password"
+								required
+							>
 								<Password.ToggleVisibility />
 							</Password.Input>
 							<Password.Error />
 							<Password.Strength />
 						</Password.Root>
-					</label>
+					</div>
 					<Dialog.Footer>
-						<Dialog.Close class="btn preset-tonal w-full md:w-fit">Cancel</Dialog.Close>
-						<button
-							type="submit"
-							class="btn preset-filled-primary-500 w-full md:w-fit"
-							disabled={isSettingPassword}
-						>
+						<Dialog.Close class="w-full md:w-fit">
+							{#snippet child({ props })}
+								<Button variant="secondary" {...props}>Cancel</Button>
+							{/snippet}
+						</Dialog.Close>
+						<Button type="submit" class="w-full md:w-fit" disabled={isSettingPassword}>
 							{#if isSettingPassword}
 								Setting...
 							{:else}
 								Set Password
 							{/if}
-						</button>
+						</Button>
 					</Dialog.Footer>
 				</div>
 			</form>
-			<Dialog.CloseX />
 		</div>
 	</Dialog.Content>
 </Dialog.Root>
@@ -609,33 +635,37 @@
 			</Drawer.Header>
 			<form onsubmit={handlePasswordSubmit} class="w-full">
 				<div class="flex flex-col gap-4">
-					<label class="flex flex-col gap-2">
-						<span class="text-sm font-medium">Password</span>
+					<div class="flex flex-col gap-2">
+						<Label for="set-password-drawer">Password</Label>
 						<Password.Root>
-							<Password.Input bind:value={password} placeholder="Enter your password" required>
+							<Password.Input
+								id="set-password-drawer"
+								bind:value={password}
+								placeholder="Enter your password"
+								required
+							>
 								<Password.ToggleVisibility />
 							</Password.Input>
 							<Password.Error />
 							<Password.Strength />
 						</Password.Root>
-					</label>
+					</div>
 					<Drawer.Footer>
-						<Drawer.Close class="btn preset-tonal w-full md:w-fit">Cancel</Drawer.Close>
-						<button
-							type="submit"
-							class="btn preset-filled-primary-500 w-full md:w-fit"
-							disabled={isSettingPassword}
-						>
+						<Drawer.Close class="w-full md:w-fit">
+							{#snippet child({ props })}
+								<Button variant="secondary" {...props}>Cancel</Button>
+							{/snippet}
+						</Drawer.Close>
+						<Button type="submit" class="w-full md:w-fit" disabled={isSettingPassword}>
 							{#if isSettingPassword}
 								Setting...
 							{:else}
 								Set Password
 							{/if}
-						</button>
+						</Button>
 					</Drawer.Footer>
 				</div>
 			</form>
-			<Drawer.CloseX />
 		</div>
 	</Drawer.Content>
 </Drawer.Root>

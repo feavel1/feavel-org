@@ -4,7 +4,9 @@
 	// Primitives
 	import { toast } from 'svelte-sonner';
 	import * as Select from '../../ui/select';
-	import { createListCollection } from '../../ui/collection';
+	import { Textarea } from '../../ui/textarea';
+	import { Button } from '../../ui/button';
+	import { Label } from '../../ui/label';
 
 	// API
 	import { useQuery } from 'convex-svelte';
@@ -45,12 +47,10 @@
 	let isProcessing: boolean = $state(false);
 	let selectedRole = $state<Role[]>(['member']);
 
-	const collection = createListCollection({
-		items: [
-			{ label: 'Member', value: 'member' },
-			{ label: 'Admin', value: 'admin' }
-		]
-	});
+	const roleOptions = [
+		{ label: 'Member', value: 'member' },
+		{ label: 'Admin', value: 'admin' }
+	];
 
 	/**
 	 * Handles the submission of the invitation form
@@ -136,47 +136,38 @@
 
 <form onsubmit={handleInvite} class="flex flex-col gap-4">
 	<div class="flex flex-col gap-4">
-		<div class="flex flex-col">
-			<label>
-				<span class="label">Role</span>
-				<Select.Root {collection} bind:value={selectedRole}>
-					<Select.Trigger class="w-full" placeholder="Select a role" />
-					<Select.Content>
-						{#each collection.items as item (item.value)}
-							<Select.Item {item}>
-								<Select.ItemText>{item.label}</Select.ItemText>
-								<Select.ItemIndicator>✓</Select.ItemIndicator>
-							</Select.Item>
-						{/each}
-					</Select.Content>
-				</Select.Root>
-			</label>
+		<div class="flex flex-col gap-2">
+			<Label for="invite-role">Role</Label>
+			<Select.Root type="multiple" bind:value={selectedRole} items={roleOptions}>
+				<Select.Trigger id="invite-role" class="w-full" placeholder="Select a role" />
+				<Select.Content>
+					{#each roleOptions as item (item.value)}
+						<Select.Item value={item.value} label={item.label} />
+					{/each}
+				</Select.Content>
+			</Select.Root>
 		</div>
 		<div class="flex flex-col gap-2">
-			<label>
-				<span class="label">Email(s)</span>
-				<textarea
-					bind:value={emailInput}
-					placeholder="example@email.com, example2@email.com"
-					class="textarea min-h-24 grow"
-					required></textarea>
-			</label>
-			<p class="text-surface-600-400 px-1 text-xs">
+			<Label for="invite-emails">Email(s)</Label>
+			<Textarea
+				id="invite-emails"
+				bind:value={emailInput}
+				placeholder="example@email.com, example2@email.com"
+				class="min-h-24 grow"
+				required
+			></Textarea>
+			<p class="px-1 text-xs text-muted-foreground">
 				You can invite multiple people by separating email addresses with commas, semicolons, or
 				spaces.
 			</p>
 		</div>
 		<div class="flex justify-end gap-2 pt-6 md:flex-row">
-			<button
-				type="submit"
-				class="btn preset-filled-primary-500"
-				disabled={isProcessing || !authConstants.sendEmails}
-			>
+			<Button type="submit" disabled={isProcessing || !authConstants.sendEmails}>
 				{isProcessing ? 'Sending...' : 'Send Invitations'}
-			</button>
+			</Button>
 		</div>
 		{#if !authConstants.sendEmails}
-			<div class="text-error-600-400 px-1 text-xs">
+			<div class="px-1 text-xs text-destructive">
 				Sending Emails is not enabled. Please enable to send invitations.
 			</div>
 		{/if}

@@ -5,16 +5,18 @@
 	// Primitives
 	import * as Dialog from '../../ui/dialog';
 	import * as Select from '../../ui/select';
-	import * as Menu from '../../ui/menu';
+	import * as DropdownMenu from '../../ui/dropdown-menu';
 	import * as Toggle from '../../ui/toggle';
-	import { createListCollection } from '../../ui/collection';
+	import { Button, buttonVariants } from '../../ui/button';
+	import { Input } from '../../ui/input';
+	import { Label } from '../../ui/label';
+	import { cn } from '../../utils.js';
 	import { toast } from 'svelte-sonner';
 	// Icons
 	import EllipsisVerticalIcon from '@lucide/svelte/icons/ellipsis-vertical';
 	import CopyIcon from '@lucide/svelte/icons/copy';
 	import CheckIcon from '@lucide/svelte/icons/check';
 	// Types
-	import Portal from '../../ui/portal.svelte';
 	import type { ListApiKeysType } from '../../auth/types';
 	type ListApiKeysResponse = NonNullable<ListApiKeysType>;
 	type ApiKeyType = ListApiKeysResponse['apiKeys'][number];
@@ -95,18 +97,14 @@
 		await navigator.clipboard.writeText(newKey);
 	};
 
-	const expirationCollection = $derived(
-		createListCollection({
-			items: [
-				{ value: '7', label: `7 days (${formatDate(getExpirationDate(7))})` },
-				{ value: '30', label: `30 days (${formatDate(getExpirationDate(30))})` },
-				{ value: '60', label: `60 days (${formatDate(getExpirationDate(60))})` },
-				{ value: '90', label: `90 days (${formatDate(getExpirationDate(90))})` },
-				{ value: 'custom', label: 'Custom' },
-				{ value: 'never', label: 'No expiration' }
-			]
-		})
-	);
+	const expirationOptions = $derived([
+		{ value: '7', label: `7 days (${formatDate(getExpirationDate(7))})` },
+		{ value: '30', label: `30 days (${formatDate(getExpirationDate(30))})` },
+		{ value: '60', label: `60 days (${formatDate(getExpirationDate(60))})` },
+		{ value: '90', label: `90 days (${formatDate(getExpirationDate(90))})` },
+		{ value: 'custom', label: 'Custom' },
+		{ value: 'never', label: 'No expiration' }
+	]);
 
 	const createApiKey = async (name: string, expiresIn?: number) => {
 		const res = await authClient.apiKey.create({ name, expiresIn });
@@ -233,7 +231,7 @@
 </script>
 
 <div class="flex w-full flex-col gap-3 pb-6">
-	<span class="text-surface-600-400 text-xs">API Keys</span>
+	<span class="text-xs text-muted-foreground">API Keys</span>
 	<!-- List api keys with name, creation data, expiry data -->
 	{#if apiKeysData}
 		{#if apiKeys.length > 0}
@@ -258,25 +256,25 @@
 										: 'Never'}</td
 								>
 								<td class="text-right">
-									<Menu.Root>
-										<Menu.Trigger class="btn-icon hover:preset-tonal">
+									<DropdownMenu.Root>
+										<DropdownMenu.Trigger
+											class={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}
+											aria-label="API key actions"
+										>
 											<EllipsisVerticalIcon class="size-4" />
-										</Menu.Trigger>
-										<Portal>
-											<Menu.Content class="bg-surface-50-950">
-												<Menu.Item value="update" onclick={() => openUpdate(apiKey)}
-													>Update</Menu.Item
-												>
-												<Menu.Item
-													value="delete"
-													variant="destructive"
-													onclick={() =>
-														openConfirmDelete({ id: apiKey.id, name: apiKey.name ?? '' })}
-													>Delete</Menu.Item
-												>
-											</Menu.Content>
-										</Portal>
-									</Menu.Root>
+										</DropdownMenu.Trigger>
+										<DropdownMenu.Content class="bg-background">
+											<DropdownMenu.Item onSelect={() => openUpdate(apiKey)}
+												>Update</DropdownMenu.Item
+											>
+											<DropdownMenu.Item
+												variant="destructive"
+												onSelect={() =>
+													openConfirmDelete({ id: apiKey.id, name: apiKey.name ?? '' })}
+												>Delete</DropdownMenu.Item
+											>
+										</DropdownMenu.Content>
+									</DropdownMenu.Root>
 								</td>
 							</tr>
 						{/each}
@@ -288,8 +286,9 @@
 		<!-- Create / Update dialog -->
 		<Dialog.Root bind:open={dialogOpen}>
 			<div>
-				<Dialog.Trigger class="btn btn-sm preset-filled-surface-200-800" onclick={openCreate}
-					>Create API Key</Dialog.Trigger
+				<Dialog.Trigger
+					class={buttonVariants({ variant: 'secondary', size: 'sm' })}
+					onclick={openCreate}>Create API Key</Dialog.Trigger
 				>
 			</div>
 			<Dialog.Content class="sm:w-md">
@@ -300,38 +299,35 @@
 				<div class="mt-4 flex flex-col gap-4">
 					<!-- Name input -->
 					<div class="flex flex-col gap-1.5">
-						<label for="api-key-name" class="text-sm font-medium">Name</label>
-						<input
+						<Label for="api-key-name">Name</Label>
+						<Input
 							id="api-key-name"
 							type="text"
 							bind:value={name}
 							placeholder="Enter API key name"
-							class="input"
 							disabled={isSubmitting}
 						/>
 					</div>
 
 					<!-- Expiration selector -->
 					<div class="flex flex-col gap-1.5">
-						<label for="expiration" class="text-sm font-medium">Expiration</label>
+						<Label for="expiration">Expiration</Label>
 						<Select.Root
-							collection={expirationCollection}
+							type="multiple"
 							value={[expirationOption]}
-							onValueChange={(v: { value: string[] }): void => {
-								expirationOption = v.value[0] as typeof expirationOption;
+							onValueChange={(v: string[]): void => {
+								expirationOption = v[0] as typeof expirationOption;
 							}}
-							class="w-56"
 						>
 							<Select.Trigger
+								id="expiration"
 								placeholder="Select expiration"
 								class="w-full"
 								disabled={isSubmitting}
 							/>
 							<Select.Content>
-								{#each expirationCollection.items as option (option.value)}
-									<Select.Item item={option}>
-										<Select.ItemText>{option.label}</Select.ItemText>
-									</Select.Item>
+								{#each expirationOptions as option (option.value)}
+									<Select.Item value={option.value} label={option.label} />
 								{/each}
 							</Select.Content>
 						</Select.Root>
@@ -340,33 +336,24 @@
 					<!-- Custom date picker (only shown when Custom is selected) -->
 					{#if expirationOption === 'custom'}
 						<div class="flex flex-col gap-1.5">
-							<label for="custom-date" class="text-sm font-medium">Select date *</label>
-							<input
-								id="custom-date"
-								type="date"
-								bind:value={customDate}
-								class="input"
-								disabled={isSubmitting}
-							/>
+							<Label for="custom-date">Select date *</Label>
+							<Input id="custom-date" type="date" bind:value={customDate} disabled={isSubmitting} />
 						</div>
 					{/if}
 				</div>
 
 				<div class="mt-6 flex w-full items-center justify-end gap-2">
-					<Dialog.Close class="btn preset-filled-surface-200-800">Cancel</Dialog.Close>
-					<button
-						onclick={handleSubmit}
-						class="btn preset-filled-primary-500"
-						disabled={isSubmitting}
+					<Dialog.Close class={buttonVariants({ variant: 'secondary', size: 'sm' })}
+						>Cancel</Dialog.Close
 					>
+					<Button size="sm" onclick={handleSubmit} disabled={isSubmitting}>
 						{#if isSubmitting}
 							{mode === 'create' ? 'Creating...' : 'Saving...'}
 						{:else}
 							{mode === 'create' ? 'Create' : 'Save'}
 						{/if}
-					</button>
+					</Button>
 				</div>
-				<Dialog.CloseX />
 			</Dialog.Content>
 		</Dialog.Root>
 
@@ -380,16 +367,18 @@
 					Are you sure you want to delete '{toDeleteName}'? This action cannot be undone.
 				</p>
 				<div class="mt-4 flex w-full items-center justify-end gap-2">
-					<Dialog.Close class="btn btn-sm preset-filled-surface-200-800">Cancel</Dialog.Close>
-					<button
-						class="btn btn-sm preset-filled-error-500"
+					<Dialog.Close class={buttonVariants({ variant: 'secondary', size: 'sm' })}
+						>Cancel</Dialog.Close
+					>
+					<Button
+						variant="destructive"
+						size="sm"
 						onclick={handleConfirmDelete}
 						disabled={isDeleting}
 					>
 						{#if isDeleting}Deleting...{:else}Delete{/if}
-					</button>
+					</Button>
 				</div>
-				<Dialog.CloseX />
 			</Dialog.Content>
 		</Dialog.Root>
 
@@ -401,11 +390,13 @@
 				</Dialog.Header>
 				<p class="text-sm">Copy and store this key now. You won’t be able to see it again.</p>
 				<div class="mt-4 flex items-stretch gap-2">
-					<input class="input flex-1 font-mono" readonly value={newKey} />
+					<Input class="flex-1 font-mono" readonly value={newKey} />
 					<Toggle.Root
 						bind:pressed={copied}
 						onclick={handleCopyClick}
-						class="btn preset-filled-surface-200-800 shrink-0"
+						variant="outline"
+						size="sm"
+						class="h-9 min-w-9 shrink-0"
 						aria-label="Copy API key"
 					>
 						{#if copied}
@@ -416,9 +407,10 @@
 					</Toggle.Root>
 				</div>
 				<div class="mt-4 flex w-full items-center justify-end gap-2">
-					<Dialog.Close class="btn btn-sm preset-filled-surface-200-800">Close</Dialog.Close>
+					<Dialog.Close class={buttonVariants({ variant: 'secondary', size: 'sm' })}
+						>Close</Dialog.Close
+					>
 				</div>
-				<Dialog.CloseX />
 			</Dialog.Content>
 		</Dialog.Root>
 	{/if}

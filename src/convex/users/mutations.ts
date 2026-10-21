@@ -43,40 +43,6 @@ export const updateProfile = mutation({
 	}
 });
 
-/**
- * Update the authenticated user's avatar storage reference.
- */
-export const updateAvatar = mutation({
-	args: {
-		storageId: v.id('_storage'),
-		optimisticImage: v.optional(v.string())
-	},
-	handler: async (ctx, args) => {
-		const user = await authComponent.safeGetAuthUser(ctx);
-		if (!user) {
-			throw new ConvexError('Not authenticated');
-		}
-
-		// Delete old image if it exists and is different from the new one
-		if (user.imageId && user.imageId !== args.storageId) {
-			await ctx.storage.delete(user.imageId);
-		}
-
-		const imageUrl = await ctx.storage.getUrl(args.storageId);
-		if (!imageUrl) {
-			throw new ConvexError('Failed to get image URL');
-		}
-
-		const auth = createAuth(ctx);
-		await auth.api.updateUser({
-			body: { image: imageUrl, imageId: args.storageId },
-			headers: await authComponent.getHeaders(ctx)
-		});
-
-		return imageUrl;
-	}
-});
-
 export const setPassword = mutation({
 	args: {
 		password: v.string()

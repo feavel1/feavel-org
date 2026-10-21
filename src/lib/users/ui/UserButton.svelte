@@ -3,6 +3,8 @@
 	import * as Popover from '../../ui/popover';
 	import * as Dialog from '../../ui/dialog';
 	import * as Avatar from '../../ui/avatar';
+	import AvatarMarble from '../../ui/avatar/avatar-marble.svelte';
+	import { Button } from '../../ui/button';
 	// Icons
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	// Components
@@ -58,10 +60,19 @@
 
 	const activeUser = $derived(activeUserResponse?.data);
 
+	// bits-ui v2 has no `positioning` prop; placement is expressed as side/align on Content
+	const popoverPositioning = $derived.by(() => {
+		const [side, align] = popoverPlacement.split('-') as [
+			'top' | 'bottom' | 'left' | 'right',
+			'start' | 'end' | undefined
+		];
+		return { side, align: align ?? 'center', sideOffset: 8 } as const;
+	});
+
 	// State
 	let userPopoverOpen = $state(false);
 	let signInDialogOpen = $state(false);
-	let avatarStatus = $state('');
+	let avatarStatus = $state<'loading' | 'loaded' | 'error'>('loading');
 
 	// Ensure SignIn form resets every time the dialog opens
 	let signInKey = $state(0);
@@ -92,39 +103,33 @@
 </script>
 
 {#if auth.isAuthenticated && activeUser}
-	<Popover.Root
-		bind:open={userPopoverOpen}
-		positioning={{
-			placement: popoverPlacement,
-			strategy: 'absolute',
-			offset: { mainAxis: 8, crossAxis: 0 }
-		}}
-	>
+	<Popover.Root bind:open={userPopoverOpen}>
 		<Popover.Trigger class="flex size-10 items-center justify-center rounded-full">
 			<Avatar.Root
-				class="ring-surface-100-900 size-9 ring-0 duration-200 ease-out ring-inset hover:ring-4"
-				onStatusChange={(details) => (avatarStatus = details.status)}
+				class="size-9 ring-0 ring-border duration-200 ease-out ring-inset hover:ring-4"
+				onLoadingStatusChange={(status) => (avatarStatus = status)}
 			>
 				<Avatar.Image src={activeUser?.image} alt={activeUser?.name} />
 				<Avatar.Fallback>
 					{#if avatarStatus === 'loading'}
-						<div class="placeholder-circle size-full animate-pulse"></div>
+						<div class="size-full animate-pulse rounded-md bg-muted"></div>
 					{:else}
-						<Avatar.Marble name={activeUser?.name} />
+						<AvatarMarble name={activeUser?.name} />
 					{/if}
 				</Avatar.Fallback>
 			</Avatar.Root>
 		</Popover.Trigger>
-		<Popover.Content>
+		<Popover.Content {...popoverPositioning}>
 			<div class="flex flex-col gap-1 p-0">
-				<button
-					class="rounded-container bg-surface-50-950 hover:bg-surface-100-900 flex flex-row items-center gap-4 p-3 pr-6 duration-200 ease-in-out"
+				<Button
+					variant="ghost"
+					class="flex h-auto flex-row items-center gap-4 rounded-lg bg-background p-3 pr-6 duration-200 ease-in-out hover:bg-muted"
 					onclick={openProfileModal}
 				>
 					<Avatar.Root class="size-12">
 						<Avatar.Image src={activeUser?.image} alt={activeUser?.name} />
 						<Avatar.Fallback>
-							<Avatar.Marble name={activeUser?.name} />
+							<AvatarMarble name={activeUser?.name} />
 						</Avatar.Fallback>
 					</Avatar.Root>
 					<div class="flex flex-1 flex-col gap-0 overflow-hidden">
@@ -134,41 +139,38 @@
 						</p>
 					</div>
 					<ChevronRightIcon class="size-4" />
-				</button>
+				</Button>
 				<SignOutButton
 					onSuccess={() => (userPopoverOpen = false)}
-					class="preset-faded-surface-50-950 btn hover:bg-surface-200-800 h-10 justify-between gap-1 text-sm"
+					class="h-10 justify-between gap-1 text-sm hover:bg-accent"
 				/>
 			</div>
 		</Popover.Content>
 	</Popover.Root>
 {:else if auth.isLoading || auth.isAuthenticated}
 	<div class="flex size-10 items-center justify-center">
-		<div class="placeholder-circle size-9 animate-pulse"></div>
+		<div class="size-9 animate-pulse rounded-md bg-muted"></div>
 	</div>
 {:else if signInTrigger}
 	{@render signInTrigger({ open: () => (signInDialogOpen = true) })}
 {:else}
-	<button class="btn preset-filled-primary-500" onclick={() => (signInDialogOpen = true)}
-		>Sign in</button
-	>
+	<Button onclick={() => (signInDialogOpen = true)}>Sign in</Button>
 {/if}
 <!-- SignIn Dialog - Outside of auth wrappers to prevent disappearing during registration -->
 <Dialog.Root
 	bind:open={signInDialogOpen}
-	onOpenChange={(status) => {
+	onOpenChange={(open) => {
 		// When dialog closes, bump the key so next open is a fresh mount
-		if (!status.open) {
+		if (!open) {
 			signInKey += 1;
 		}
 	}}
 >
 	<Dialog.Content
-		class="sm:rounded-container h-full max-h-dvh w-full rounded-none sm:h-auto sm:max-h-[90vh] sm:w-4xl sm:max-w-md"
+		class="h-full max-h-dvh w-full rounded-none sm:h-auto sm:max-h-[90vh] sm:w-4xl sm:max-w-md sm:rounded-none"
 	>
 		{#key signInKey}
 			<SignIn onSignIn={() => (signInDialogOpen = false)} class="p-2 sm:p-8" />
 		{/key}
-		<Dialog.CloseX />
 	</Dialog.Content>
 </Dialog.Root>

@@ -11,6 +11,10 @@ export default defineConfig({
 		enhancedImages(),
 		tailwindcss(),
 		sveltekit({
+			// Kit 3 removed the implicit `$lib` alias. The ported sources still use
+			// it alongside `#lib`, so keep `$lib` mapped rather than rewriting
+			// every import at once.
+			alias: { $lib: 'src/lib' },
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
 				runes: ({ filename }) =>
@@ -22,6 +26,10 @@ export default defineConfig({
 		paraglideVitePlugin({
 			project: './project.inlang',
 			outdir: './src/lib/paraglide',
+			// Emit `.d.ts` files next to the generated output. The Cloudflare Worker
+			// globals (`Request<CfHostMetadata, Cf>`, …) conflict with the DOM lib
+			// types when `checkJs` type-checks the generated `.js` files directly, so
+			// `svelte-check` resolves the declarations instead.
 			emitTsDeclarations: true
 		})
 	],

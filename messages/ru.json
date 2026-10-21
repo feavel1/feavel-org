@@ -1,4 +1,23 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
-	"hello_world": "Hello, {name} from ru!"
+	"hello_world": "Hello, {name} from ru!",
+	"mellow_awful_kudu_boost": "Продюсер, который пишет код. Разработчик, владеющий тремя языками. Переводчик, который слышит музыку за словами.",
+	"wild_super_monkey_express": "Что я предлагаю",
+	"fierce_roo_ramp": "Связаться",
+	"brisk_mink_mesh": "Каждый проект начинается с разговора.",
+	"trim_yak_spray": "Три направления. Одна мастерская.",
+	"wild_trout_dip": "Крестики-нолики и шахматы — игры для двух игроков на Convex.",
+	"ready_mole_swing": "Сыграть",
+	"sharp_snipe_twist": "Статьи, учебники, эссе. Просмотр по категориям, доступ к платному контенту.",
+	"zealous_dolphin_twirl": "Читать статьи",
+	"plumb_monkey_forge": "音乐 · 代码 · 语言",
+	"jolly_gazelle_surge": "Статьи",
+	"blank_quail_drift": "Услуги",
+	"thin_koala_dock": "Игры",
+	"jolly_falcon_hop": "feavel@email.com",
+	"rapid_duck_flip": "Загрузка...",
+	"wise_seal_knit": "Загрузить еще",
+	"bland_trout_flock": "Попробуйте другие фильтры или нажмите ⌘K для поиска",
+	"solid_trout_place": "Посты не найдены",
+	"long_lemur_clap": "Посты — Feavel"
 }

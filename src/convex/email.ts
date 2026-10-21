@@ -5,9 +5,11 @@ import {
 	renderVerifyOTP,
 	renderResetPassword,
 	renderChangeEmailVerification,
-	renderInviteMember
+	renderInviteMember,
+	renderContactInquiryNotification,
+	renderContactInquiryAutoReply
 } from './model/emails/templates/emailTemplates';
-import { type ActionCtx } from './_generated/server';
+import { type ActionCtx, type MutationCtx } from './_generated/server';
 
 import { Resend } from '@convex-dev/resend';
 import { components } from './_generated/api';
@@ -155,6 +157,50 @@ export const sendChangeEmailVerification = async (
 			brandTagline: BRAND_TAGLINE,
 			brandLogoUrl: BRAND_LOGO_URL
 		})
+	});
+};
+
+export const sendContactInquiryNotification = async (
+	ctx: MutationCtx | ActionCtx,
+	{
+		to,
+		name,
+		email,
+		category,
+		message
+	}: {
+		to: string;
+		name: string;
+		email: string;
+		category: string;
+		message: string;
+	}
+) => {
+	if (!EMAIL_SEND_FROM) {
+		throw new Error('EMAIL_SEND_FROM environment variable is required but not set');
+	}
+	await resend.sendEmail(ctx, {
+		from: EMAIL_SEND_FROM,
+		to,
+		replyTo: [email],
+
+		subject: `New inquiry from ${name} (${category})`,
+		html: renderContactInquiryNotification({ name, email, category, message })
+	});
+};
+
+export const sendContactInquiryAutoReply = async (
+	ctx: MutationCtx | ActionCtx,
+	{ to, name }: { to: string; name: string }
+) => {
+	if (!EMAIL_SEND_FROM) {
+		throw new Error('EMAIL_SEND_FROM environment variable is required but not set');
+	}
+	await resend.sendEmail(ctx, {
+		from: EMAIL_SEND_FROM,
+		to,
+		subject: 'Thanks for reaching out',
+		html: renderContactInquiryAutoReply({ name })
 	});
 };
 

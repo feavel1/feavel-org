@@ -7,6 +7,11 @@
 	import { getAuthContext } from '../context.svelte';
 	const { api } = getAuthContext();
 
+	// Components
+	import { Input } from '../../ui/input';
+	import { Label } from '../../ui/label';
+	import { Button } from '../../ui/button';
+
 	type AuthMethod = 'password' | 'emailOTP' | 'magicLink';
 
 	interface EmailStepProps {
@@ -76,15 +81,15 @@
 
 <div class="flex flex-col gap-8">
 	<div class="flex flex-col">
-		<label class="label" for=" email">Email</label>
-		<input
+		<Label for="email">Email</Label>
+		<Input
 			id="email"
 			name="email"
 			type="email"
 			autocomplete="email"
 			value={email}
 			oninput={(e) => onEmailChange(e.currentTarget.value)}
-			class="preset-filled-surface-200 input text-sm"
+			class="mt-2"
 			placeholder="Enter your email"
 			required
 			disabled={submitting || validatingEmail}
@@ -93,10 +98,10 @@
 
 	{#if availableMethods.length === 1}
 		<!-- Single method available -->
-		<button
+		<Button
 			type="button"
 			onclick={() => handleMethodClick(availableMethods[0])}
-			class="btn preset-filled w-full"
+			class="w-full"
 			disabled={submitting || validatingEmail || !email}
 		>
 			{#if validatingEmail}
@@ -109,15 +114,15 @@
 			{:else}
 				{getSingleMethodButtonText()}
 			{/if}
-		</button>
+		</Button>
 	{:else}
 		<!-- Multiple methods available -->
 		<div class="flex flex-col gap-2">
 			{#if availableMethods.includes('password')}
-				<button
+				<Button
 					type="button"
 					onclick={() => handleMethodClick('password')}
-					class="btn preset-filled w-full"
+					class="w-full"
 					disabled={submitting || validatingEmail || !email}
 				>
 					{#if validatingEmail && validatingEmailMethod === 'password'}
@@ -130,14 +135,15 @@
 					{:else}
 						Continue with Password
 					{/if}
-				</button>
+				</Button>
 			{/if}
 
 			{#if availableMethods.includes('emailOTP')}
-				<button
+				<Button
 					type="button"
+					variant="secondary"
 					onclick={() => handleMethodClick('emailOTP')}
-					class="btn preset-tonal w-full"
+					class="w-full"
 					disabled={submitting || validatingEmail || !email}
 				>
 					{#if validatingEmail && validatingEmailMethod === 'emailOTP'}
@@ -150,14 +156,15 @@
 					{:else}
 						Continue with Email OTP
 					{/if}
-				</button>
+				</Button>
 			{/if}
 
 			{#if availableMethods.includes('magicLink')}
-				<button
+				<Button
 					type="button"
+					variant="secondary"
 					onclick={() => handleMethodClick('magicLink')}
-					class="btn preset-tonal w-full"
+					class="w-full"
 					disabled={submitting || validatingEmail || !email}
 				>
 					{#if validatingEmail && validatingEmailMethod === 'magicLink'}
@@ -170,7 +177,7 @@
 					{:else}
 						Continue with Magic Link
 					{/if}
-				</button>
+				</Button>
 			{/if}
 		</div>
 	{/if}
