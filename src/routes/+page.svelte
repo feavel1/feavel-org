@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import RevealItem from '$lib/components/RevealItem.svelte';
-	import { m } from '$lib/paraglide/messages.js';
+	import RevealItem from '#lib/components/RevealItem.svelte';
+	import { m } from '#lib/paraglide/messages.js';
 </script>
 
 <svelte:head><title>Feavel</title></svelte:head>

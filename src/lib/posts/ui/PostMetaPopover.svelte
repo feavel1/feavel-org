@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { Button } from '$lib/ui/button';
-	import * as Select from '$lib/ui/select';
-	import * as Popover from '$lib/ui/popover';
-	import * as Command from '$lib/ui/command';
-	import * as Dialog from '$lib/ui/dialog';
+	import { Button } from '#lib/ui/button';
+	import * as Select from '#lib/ui/select';
+	import * as Popover from '#lib/ui/popover';
+	import * as Command from '#lib/ui/command';
+	import * as Dialog from '#lib/ui/dialog';
 	import { Edit, X, CheckIcon, ChevronsUpDownIcon } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { useConvexClient, useMutation, useQuery } from 'convex-svelte';
@@ -17,7 +17,7 @@
 		onDirty = () => {}
 	}: {
 		postId: Id<'posts'>;
-		editor: import('$lib/edra/tiptap/Editor').Editor | undefined;
+		editor: import('#lib/edra/tiptap/Editor').Editor | undefined;
 		askQuery: ReturnType<typeof useQuery>;
 		onDirty?: () => void;
 	} = $props();

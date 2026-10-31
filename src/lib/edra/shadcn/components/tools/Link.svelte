@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { buttonVariants, Button } from '$lib/ui/button';
-	import { Input } from '$lib/ui/input';
-	import * as Popover from '$lib/ui/popover';
+	import { buttonVariants, Button } from '#lib/ui/button';
+	import { Input } from '#lib/ui/input';
+	import * as Popover from '#lib/ui/popover';
 	import Check from '@lucide/svelte/icons/check';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import Link from '@lucide/svelte/icons/link-2';

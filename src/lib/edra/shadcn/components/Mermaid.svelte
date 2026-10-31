@@ -2,8 +2,8 @@
 	import { onMount, onDestroy, tick } from 'svelte';
 	import type { NodeViewProps } from '@tiptap/core';
 	import mermaid from 'mermaid';
-	import { Button } from '$lib/ui/button';
-	import * as Tabs from '$lib/ui/tabs';
+	import { Button } from '#lib/ui/button';
+	import * as Tabs from '#lib/ui/tabs';
 	import { cn } from '#lib/utils.js';
 	import Workflow from '@lucide/svelte/icons/workflow';
 	import Pencil from '@lucide/svelte/icons/pencil';

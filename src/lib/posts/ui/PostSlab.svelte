@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { EdraEditor } from '$lib/edra/shadcn/index.js';
-	import { Badge } from '$lib/ui/badge';
-	import { Button } from '$lib/ui/button';
-	import { Separator } from '$lib/ui/separator';
-	import { Skeleton } from '$lib/ui/skeleton';
-	import * as EmojiPicker from '$lib/ui/emoji-picker';
-	import * as Popover from '$lib/ui/popover';
-	import * as Empty from '$lib/ui/empty';
+	import { EdraEditor } from '#lib/edra/shadcn/index.js';
+	import { Badge } from '#lib/ui/badge';
+	import { Button } from '#lib/ui/button';
+	import { Separator } from '#lib/ui/separator';
+	import { Skeleton } from '#lib/ui/skeleton';
+	import * as EmojiPicker from '#lib/ui/emoji-picker';
+	import * as Popover from '#lib/ui/popover';
+	import * as Empty from '#lib/ui/empty';
 	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { api } from '#convex/_generated/api';
 	import type { Id } from '#convex/_generated/dataModel';
 	import { Lock, SendHorizontal, SmilePlus, MessageCircle } from '@lucide/svelte';
-	import { x402 } from '$lib/wallet/x402';
-	import WalletButton from '$lib/wallet/ui/WalletButton.svelte';
+	import { x402 } from '#lib/wallet/x402';
+	import WalletButton from '#lib/wallet/ui/WalletButton.svelte';
 	import { slide } from 'svelte/transition';
 
 	let {

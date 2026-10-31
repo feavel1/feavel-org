@@ -1,5 +1,5 @@
 <script lang="ts">
-	import * as Tooltip from '$lib/ui/tooltip';
+	import * as Tooltip from '#lib/ui/tooltip';
 	import type { Snippet } from 'svelte';
 
 	interface Props {

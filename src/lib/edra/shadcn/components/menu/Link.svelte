@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '$lib/ui/button';
-	import { Input } from '$lib/ui/input';
+	import { Button } from '#lib/ui/button';
+	import { Input } from '#lib/ui/input';
 	import Check from '@lucide/svelte/icons/check';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Edit from '@lucide/svelte/icons/pen';

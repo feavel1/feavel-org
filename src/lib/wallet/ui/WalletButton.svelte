@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { wallet, walletAddress, availableWallets } from '$lib/wallet/standard';
+	import { wallet, walletAddress, availableWallets } from '#lib/wallet/standard';
 	import { browser } from '$app/env';
 	import type { Wallet } from '@wallet-standard/base';
 

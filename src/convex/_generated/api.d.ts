@@ -8,12 +8,16 @@
  * @module
  */
 
+import type * as admin_mutations from "../admin/mutations.js";
+import type * as admin_queries from "../admin/queries.js";
 import type * as auth from "../auth.js";
 import type * as comments_index from "../comments/index.js";
 import type * as deviceAuthorization from "../deviceAuthorization.js";
 import type * as email from "../email.js";
 import type * as http from "../http.js";
 import type * as migrations from "../migrations.js";
+import type * as model_admin_index from "../model/admin/index.js";
+import type * as model_admin_roles from "../model/admin/roles.js";
 import type * as model_emails_templates_baseEmail from "../model/emails/templates/baseEmail.js";
 import type * as model_emails_templates_emailTemplates from "../model/emails/templates/emailTemplates.js";
 import type * as model_emails_validateEmail from "../model/emails/validateEmail.js";
@@ -44,12 +48,16 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "admin/mutations": typeof admin_mutations;
+  "admin/queries": typeof admin_queries;
   auth: typeof auth;
   "comments/index": typeof comments_index;
   deviceAuthorization: typeof deviceAuthorization;
   email: typeof email;
   http: typeof http;
   migrations: typeof migrations;
+  "model/admin/index": typeof model_admin_index;
+  "model/admin/roles": typeof model_admin_roles;
   "model/emails/templates/baseEmail": typeof model_emails_templates_baseEmail;
   "model/emails/templates/emailTemplates": typeof model_emails_templates_emailTemplates;
   "model/emails/validateEmail": typeof model_emails_validateEmail;

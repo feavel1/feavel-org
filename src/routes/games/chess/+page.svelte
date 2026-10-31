@@ -3,14 +3,14 @@
 	import 'svelte5-chessground/style.css';
 	import type { Api as CgApi } from 'chessground/api';
 	import type { Square } from 'chess.js';
-	import { Button } from '$lib/ui/button';
+	import { Button } from '#lib/ui/button';
 	import {
 		ChessApi,
 		colorToCgColor,
 		type Move,
 		type GameOver,
 		type PieceSymbol
-	} from '$lib/games/chess/api';
+	} from '#lib/games/chess/api';
 	import { RotateCcw, RefreshCw } from '@lucide/svelte';
 
 	let cgApi = $state<CgApi>();

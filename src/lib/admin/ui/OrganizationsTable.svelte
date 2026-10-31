@@ -1,0 +1,164 @@
+<script lang="ts">
+	// Primitives
+	import * as Avatar from '#lib/ui/avatar/index.js';
+	import AvatarMarble from '#lib/ui/avatar/avatar-marble.svelte';
+	import { Button } from '#lib/ui/button/index.js';
+	import { Input } from '#lib/ui/input/index.js';
+	// Icons
+	import Loader2Icon from '@lucide/svelte/icons/loader-2';
+	import SearchIcon from '@lucide/svelte/icons/search';
+	// Components
+	import OrganizationActionsMenu from '#lib/admin/ui/OrganizationActionsMenu.svelte';
+	// API
+	import { useQuery } from 'convex-svelte';
+	import { getAuthContext } from '#lib/auth/context.svelte.js';
+	// Constants
+	import { LIST_MAX } from '#lib/admin/utils/admin.constants.js';
+
+	let {
+		onViewOrganization
+	}: {
+		/** Opens the page of an organization */
+		onViewOrganization: (organizationId: string) => void;
+	} = $props();
+
+	const PAGE_SIZE = 25;
+
+	const { api } = getAuthContext();
+
+	// Search runs 250ms after the last keystroke instead of on every one, like the users table
+	let searchInput = $state('');
+	let searchQuery = $state('');
+	let limit = $state(PAGE_SIZE);
+	$effect(() => {
+		const value = searchInput.trim();
+		const timer = setTimeout(() => {
+			searchQuery = value;
+			limit = PAGE_SIZE;
+		}, 250);
+		return () => clearTimeout(timer);
+	});
+
+	// "Load more" raises the limit of one reactive list, like the users table
+	const orgsQuery = useQuery(
+		api.admin.queries.listAllOrganizations,
+		() => ({ searchValue: searchQuery || undefined, limit }),
+		{ keepPreviousData: true }
+	);
+	const organizations = $derived(orgsQuery.data?.organizations ?? []);
+	// While a new search or page loads, the previous results stay on screen, dimmed
+	const isStale = $derived(orgsQuery.isStale);
+</script>
+
+<div class="flex h-full flex-col">
+	<div class="flex shrink-0 items-center gap-3 py-4">
+		<div class="relative flex-1">
+			<div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+				<SearchIcon class="size-4 text-muted-foreground" aria-hidden="true" />
+			</div>
+			<Input
+				type="search"
+				class="w-full border-0 pl-9 text-sm shadow-none"
+				placeholder="Search by name or slug..."
+				aria-label="Search organizations by name or slug"
+				bind:value={searchInput}
+			/>
+		</div>
+	</div>
+
+	{#if orgsQuery.error}
+		<div class="p-4 text-sm text-destructive">{orgsQuery.error.message}</div>
+	{:else if !orgsQuery.data}
+		<div class="flex items-center gap-2 p-4 text-sm text-muted-foreground" role="status">
+			<Loader2Icon class="size-4 animate-spin" aria-hidden="true" />
+			Loading organizations...
+		</div>
+	{:else if organizations.length === 0}
+		<div class="p-4 text-sm text-muted-foreground">
+			{searchQuery ? `No organizations match "${searchQuery}".` : 'No organizations yet.'}
+		</div>
+	{:else}
+		<div
+			class="max-h-[calc(80vh-12rem)] overflow-y-auto pb-12 transition-opacity"
+			class:opacity-60={isStale}
+		>
+			<table class="w-full">
+				<thead class="sticky top-0 z-20 bg-background">
+					<tr>
+						<th class="p-2 !pl-3 text-left text-xs font-semibold text-muted-foreground">
+							Organization
+						</th>
+						<th class="hidden w-32 p-2 text-left text-xs text-muted-foreground sm:table-cell">
+							Created
+						</th>
+						<th class="w-12 p-2"><span class="sr-only">Actions</span></th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each organizations as org (org._id)}
+						<tr
+							class="cursor-pointer border-t border-border hover:bg-accent"
+							onclick={() => onViewOrganization(org._id)}
+						>
+							<td class="max-w-0 !py-3 !pl-3">
+								<div class="flex items-center gap-3">
+									<Avatar.Root class="size-9 shrink-0 rounded-md">
+										<Avatar.Image src={org.logo ?? undefined} alt={org.name} />
+										<Avatar.Fallback class="rounded-md">
+											<AvatarMarble name={org.name} />
+										</Avatar.Fallback>
+									</Avatar.Root>
+									<div class="flex min-w-0 flex-col">
+										<!-- The keyboard way to the organization; the row handles pointer clicks -->
+										<button
+											type="button"
+											class="truncate text-left text-sm font-medium hover:underline"
+											data-admin-focus={org._id}
+											onclick={(event) => {
+												event.stopPropagation();
+												onViewOrganization(org._id);
+											}}
+										>
+											{org.name}
+										</button>
+										<span class="truncate text-sm text-muted-foreground">{org.slug}</span>
+									</div>
+								</div>
+							</td>
+							<td class="hidden text-sm text-muted-foreground sm:table-cell">
+								{new Date(org.createdAt).toLocaleDateString()}
+							</td>
+							<!-- Clicks on the menu don't open the organization -->
+							<td class="text-right" onclick={(event) => event.stopPropagation()}>
+								<OrganizationActionsMenu
+									organization={org}
+									onView={() => onViewOrganization(org._id)}
+								/>
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+			{#if searchQuery && !isStale && organizations.length >= PAGE_SIZE}
+				<p class="py-3 text-center text-xs text-muted-foreground">
+					Showing the first {PAGE_SIZE} matches. Refine your search to narrow them down.
+				</p>
+			{/if}
+			{#if orgsQuery.data.hasMore && limit >= LIST_MAX}
+				<p class="py-3 text-center text-xs text-muted-foreground">
+					Showing the newest {LIST_MAX} organizations. Search to find the others.
+				</p>
+			{:else if orgsQuery.data.hasMore}
+				<div class="flex justify-center py-3">
+					<Button
+						variant="secondary"
+						onclick={() => (limit = Math.min(limit + PAGE_SIZE, LIST_MAX))}
+						disabled={isStale}
+					>
+						Load more
+					</Button>
+				</div>
+			{/if}
+		</div>
+	{/if}
+</div>

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { EdraEditor } from '$lib/edra/shadcn/index.js';
-	import * as Empty from '$lib/ui/empty';
-	import defaultContent from '$lib/posts/default_content';
+	import { EdraEditor } from '#lib/edra/shadcn/index.js';
+	import * as Empty from '#lib/ui/empty';
+	import defaultContent from '#lib/posts/default_content';
 	import { MessageCircle, LoaderCircle } from '@lucide/svelte';
 	import { fade } from 'svelte/transition';
 

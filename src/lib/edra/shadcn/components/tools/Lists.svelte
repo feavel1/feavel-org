@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { buttonVariants } from '$lib/ui/button';
-	import * as DropdownMenu from '$lib/ui/dropdown-menu';
+	import { buttonVariants } from '#lib/ui/button';
+	import * as DropdownMenu from '#lib/ui/dropdown-menu';
 	import { cn } from '#lib/utils.js';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import Minus from '@lucide/svelte/icons/minus';

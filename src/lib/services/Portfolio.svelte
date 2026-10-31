@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PortfolioEntry } from '$lib/services/types';
+	import type { PortfolioEntry } from '#lib/services/types';
 	import { resolve } from '$app/paths';
 
 	let { entries = [] as PortfolioEntry[] }: { entries?: PortfolioEntry[] } = $props();

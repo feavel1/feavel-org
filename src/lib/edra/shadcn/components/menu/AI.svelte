@@ -35,7 +35,7 @@
 		TextWrap,
 		Send
 	} from '@lucide/svelte';
-	import { Button } from '$lib/ui/button';
+	import { Button } from '#lib/ui/button';
 
 	let inputTag = $state<HTMLTextAreaElement | null>(null);
 	const editor = getEditor();

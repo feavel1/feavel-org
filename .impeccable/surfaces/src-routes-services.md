@@ -39,9 +39,9 @@ The Gothic × Neon palette replaced the Darkroom monochrome across the entire ap
 
 ### Constraints
 
-- Surface-specific CSS in `$lib/services/bebop.css` — grain, discipline bars, index chips
+- Surface-specific CSS in `#lib/services/bebop.css` — grain, discipline bars, index chips
 - Palette tokens live in `layout.css` as CSS custom properties
-- Portfolio entries are hard-coded in `$lib/services/data.ts` with post IDs linking to Convex
+- Portfolio entries are hard-coded in `#lib/services/data.ts` with post IDs linking to Convex
 - Contact form preserves existing Convex mutation and toast behavior
 - Dark mode is the primary mode; light mode is "day cathedral" (pale stone, deeper jewel tones)
 

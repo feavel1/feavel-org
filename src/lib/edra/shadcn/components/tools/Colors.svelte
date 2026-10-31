@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { quickcolors } from '../../../utils.ts';
-	import { buttonVariants } from '$lib/ui/button';
-	import * as DropdownMenu from '$lib/ui/dropdown-menu';
+	import { buttonVariants } from '#lib/ui/button';
+	import * as DropdownMenu from '#lib/ui/dropdown-menu';
 	import { cn } from '#lib/utils.js';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import Check from '@lucide/svelte/icons/check';

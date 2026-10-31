@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { NodeViewContent, NodeViewWrapper, type NodeViewProps } from '../../tiptap/index.js';
-	import * as Popover from '$lib/ui/popover';
-	import { Input } from '$lib/ui/input';
+	import * as Popover from '#lib/ui/popover';
+	import { Input } from '#lib/ui/input';
 	import { cn } from '#lib/utils.js';
-	import { buttonVariants } from '$lib/ui/button';
+	import { buttonVariants } from '#lib/ui/button';
 
 	const { node, updateAttributes }: NodeViewProps = $props();
 

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button, buttonVariants } from '$lib/ui/button';
-	import * as DropdownMenu from '$lib/ui/dropdown-menu';
+	import { Button, buttonVariants } from '#lib/ui/button';
+	import * as DropdownMenu from '#lib/ui/dropdown-menu';
 	import { cn } from '#lib/utils.js';
 	import AlignCenter from '@lucide/svelte/icons/text-align-center';
 	import AlignLeft from '@lucide/svelte/icons/text-align-start';

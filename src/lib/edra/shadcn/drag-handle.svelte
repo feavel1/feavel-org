@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { autoPlacement } from '@floating-ui/dom';
-	import { Button } from '$lib/ui/button';
-	import * as DropdownMenu from '$lib/ui/dropdown-menu';
+	import { Button } from '#lib/ui/button';
+	import * as DropdownMenu from '#lib/ui/dropdown-menu';
 	import { Braces, Sparkles, TextAlignCenter } from '@lucide/svelte';
 	import Clipboard from '@lucide/svelte/icons/clipboard';
 	import Duplicate from '@lucide/svelte/icons/copy';

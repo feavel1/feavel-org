@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { Button, buttonVariants } from '$lib/ui/button';
+	import { Button, buttonVariants } from '#lib/ui/button';
 	import { NodeViewContent, NodeViewWrapper, type NodeViewProps } from '../../tiptap/index.js';
 
 	const { editor, node, updateAttributes, extension, getPos }: NodeViewProps = $props();
 
-	import * as Popover from '$lib/ui/popover';
+	import * as Popover from '#lib/ui/popover';
 	import Check from '@lucide/svelte/icons/check';
 	import Copy from '@lucide/svelte/icons/copy';
-	import * as Command from '$lib/ui/command';
+	import * as Command from '#lib/ui/command';
 	import { cn } from '#lib/utils.js';
 	import strings from '../../strings.js';
 	import { Sparkle } from '@lucide/svelte';

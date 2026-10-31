@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '$lib/ui/button';
-	import { Separator } from '$lib/ui/separator';
+	import { Button } from '#lib/ui/button';
+	import { Separator } from '#lib/ui/separator';
 	import { commands } from '../../../commands/index.js';
 	import {
 		addAIHighlight,

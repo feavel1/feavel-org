@@ -6,10 +6,11 @@ import authSchema from './betterAuth/schema';
 import authConfig from './auth.config';
 
 import { betterAuth, type BetterAuthOptions } from 'better-auth';
+import { APIError, createAuthMiddleware } from 'better-auth/api';
 
 // Plugins
 import { convex } from '@convex-dev/better-auth/plugins';
-import { emailOTP, magicLink, organization, deviceAuthorization } from 'better-auth/plugins';
+import { admin, emailOTP, magicLink, organization, deviceAuthorization } from 'better-auth/plugins';
 import { apiKey } from '@better-auth/api-key';
 
 // Emails
@@ -25,6 +26,16 @@ import {
 // Constants
 import { AUTH_CONSTANTS } from './auth.constants';
 import { getBetterAuthBaseUrl, getBetterAuthFallbackUrl, resolveRequestBaseUrl } from './url';
+import { getAdminUserIds, isAppAdminUser } from './model/admin/roles';
+
+/**
+ * Admin plugin endpoints the browser may call over HTTP. Impersonation has to run there, since it
+ * swaps the session cookies; the hook below refuses to impersonate admins. Every other admin
+ * action goes through the `admin/*` Convex functions, which add the checks Better Auth lacks:
+ * admins can't act on other admins or on `ADMIN_USER_IDS` admins, and session tokens stay on the
+ * server.
+ */
+const ADMIN_HTTP_ENDPOINTS = ['/admin/impersonate-user', '/admin/stop-impersonating'];
 
 // Typesafe way to pass Convex functions defined in this file
 const authFunctions: AuthFunctions = internal.auth;
@@ -68,6 +79,20 @@ export const authComponent = createClient<DataModel, typeof authSchema>(componen
 			}
 		},
 		session: {
+			// Better Auth refreshes sessions it finds in Convex mutations with the normal 7 day expiry. It
+			// skips that for an admin impersonation (1 hour) only when the browser sends its
+			// `dont_remember` cookie, which Convex's bearer token doesn't carry, so keep the original expiry
+			onUpdate: async (ctx, newSession, oldSession) => {
+				if (newSession.impersonatedBy && newSession.expiresAt > oldSession.expiresAt) {
+					await ctx.runMutation(components.betterAuth.adapter.updateOne, {
+						input: {
+							model: 'session',
+							where: [{ field: '_id', value: newSession._id }],
+							update: { expiresAt: oldSession.expiresAt }
+						}
+					});
+				}
+			},
 			onCreate: async (ctx, session) => {
 				if (!session.activeOrganizationId && AUTH_CONSTANTS.organizations) {
 					await ctx.runMutation(components.betterAuth.organization.setActiveOrganization, {
@@ -285,6 +310,33 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
 			}
 		},
 
+		hooks: {
+			before: createAuthMiddleware(async (ctx) => {
+				// `ctx.request` is only set for HTTP requests, not for `auth.api.*` calls from Convex
+				if (
+					ctx.request &&
+					ctx.path.startsWith('/admin/') &&
+					!ADMIN_HTTP_ENDPOINTS.includes(ctx.path)
+				) {
+					throw new APIError('NOT_FOUND');
+				}
+				// Better Auth lets ADMIN_USER_IDS admins impersonate anyone, admins included
+				if (ctx.path === '/admin/impersonate-user') {
+					// Better Auth coerces any userId to a string later, ["<id>"] included, so check the exact
+					// value it will use
+					const userId = (ctx.body as { userId?: unknown } | undefined)?.userId;
+					if (typeof userId !== 'string') {
+						throw new APIError('BAD_REQUEST', { message: 'userId must be a string.' });
+					}
+					const target = await ctx.context.internalAdapter.findUserById(userId);
+					const role = (target as { role?: string | null } | null)?.role;
+					if (target && isAppAdminUser({ id: target.id, role })) {
+						throw new APIError('FORBIDDEN', { message: "You can't impersonate admins." });
+					}
+				}
+			})
+		},
+
 		plugins: [
 			// The Convex plugin is required
 			convex({
@@ -344,6 +396,16 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
 					]
 				: []),
 			...(AUTH_CONSTANTS.apiKeys ? [apiKey()] : []),
+			...(AUTH_CONSTANTS.admin
+				? [
+						admin({
+							// The very first admin must be bootstrapped via the ADMIN_USER_IDS env var
+							// (comma-separated Better Auth user ids). Once one admin exists, they can
+							// promote others from the admin dashboard. See model/admin/roles.ts.
+							adminUserIds: getAdminUserIds()
+						})
+					]
+				: []),
 			...(AUTH_CONSTANTS.deviceAuthorization
 				? [
 						deviceAuthorization({

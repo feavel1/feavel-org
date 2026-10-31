@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { Swords, Circle } from '@lucide/svelte';
-	import PageHeader from '$lib/components/PageHeader.svelte';
+	import PageHeader from '#lib/components/PageHeader.svelte';
 </script>
 
 <div class="content-wide flex flex-col items-center gap-6">

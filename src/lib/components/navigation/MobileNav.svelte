@@ -1,6 +1,6 @@
 <script lang="ts">
-	import * as Drawer from '$lib/ui/drawer';
-	import { Separator } from '$lib/ui/separator';
+	import * as Drawer from '#lib/ui/drawer';
+	import { Separator } from '#lib/ui/separator';
 	import MenuIcon from '@lucide/svelte/icons/menu';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';

@@ -4,6 +4,7 @@ export const AUTH_CONSTANTS: AuthConstants = {
 	sendEmails: true,
 	apiKeys: true,
 	organizations: true,
+	admin: true,
 	providers: {
 		// emailOTP: true,
 		// magicLink: true,

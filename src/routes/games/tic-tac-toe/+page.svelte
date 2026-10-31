@@ -1,13 +1,13 @@
 <script lang="ts">
-	import Board from '$lib/games/tic-tac-toe/Board.svelte';
-	import { placeMark, getWinner, getWinningLine } from '$lib/games/tic-tac-toe/game';
+	import Board from '#lib/games/tic-tac-toe/Board.svelte';
+	import { placeMark, getWinner, getWinningLine } from '#lib/games/tic-tac-toe/game';
 	import {
 		createSession,
 		recordRound,
 		playAgain as nextRound,
 		newSession as resetSession,
 		type SessionState
-	} from '$lib/games/tic-tac-toe/session';
+	} from '#lib/games/tic-tac-toe/session';
 
 	let session: SessionState = $state(createSession());
 	let game = $derived(session.game);

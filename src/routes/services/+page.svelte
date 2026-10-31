@@ -1,9 +1,9 @@
 <script lang="ts">
-	import SectionHead from '$lib/components/SectionHead.svelte';
-	import RevealItem from '$lib/components/RevealItem.svelte';
-	import Portfolio from '$lib/services/Portfolio.svelte';
-	import ContactForm from '$lib/services/ContactForm.svelte';
-	import { services, portfolioEntries } from '$lib/services/data';
+	import SectionHead from '#lib/components/SectionHead.svelte';
+	import RevealItem from '#lib/components/RevealItem.svelte';
+	import Portfolio from '#lib/services/Portfolio.svelte';
+	import ContactForm from '#lib/services/ContactForm.svelte';
+	import { services, portfolioEntries } from '#lib/services/data';
 </script>
 
 <svelte:head><title>Services — Feavel</title></svelte:head>

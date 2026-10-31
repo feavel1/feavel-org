@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { buttonVariants } from '$lib/ui/button';
-	import * as DropdownMenu from '$lib/ui/dropdown-menu';
+	import { buttonVariants } from '#lib/ui/button';
+	import * as DropdownMenu from '#lib/ui/dropdown-menu';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import Tooltip from '../Tooltip.svelte';
 	import { getEditor, useEditorTransaction } from '../../../tiptap/index.js';

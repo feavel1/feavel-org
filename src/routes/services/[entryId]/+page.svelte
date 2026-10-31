@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { portfolioEntries } from '$lib/services/data';
-	import { EdraEditor } from '$lib/edra/shadcn/index.js';
-	import { Skeleton } from '$lib/ui/skeleton';
+	import { portfolioEntries } from '#lib/services/data';
+	import { EdraEditor } from '#lib/edra/shadcn/index.js';
+	import { Skeleton } from '#lib/ui/skeleton';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '#convex/_generated/api';
 	import type { Id } from '#convex/_generated/dataModel';
-	import '$lib/services/bebop.css';
+	import '#lib/services/bebop.css';
 
 	const entry = $derived(portfolioEntries.find((e) => e.id === page.params.entryId));
 	const post = useQuery(api.posts.queries.getPost, () =>

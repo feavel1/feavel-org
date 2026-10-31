@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import RevealItem from '$lib/components/RevealItem.svelte';
-	import PostFilters from '$lib/posts/ui/PostFilters.svelte';
-	import PostSlab from '$lib/posts/ui/PostSlab.svelte';
-	import { Skeleton } from '$lib/ui/skeleton';
+	import RevealItem from '#lib/components/RevealItem.svelte';
+	import PostFilters from '#lib/posts/ui/PostFilters.svelte';
+	import PostSlab from '#lib/posts/ui/PostSlab.svelte';
+	import { Skeleton } from '#lib/ui/skeleton';
 	import { usePaginatedQuery, useQuery } from 'convex-svelte';
 	import { api } from '#convex/_generated/api';
 	import { ListFilter } from '@lucide/svelte';
-	import * as Empty from '$lib/ui/empty';
+	import * as Empty from '#lib/ui/empty';
 
 	import { browser } from '$app/env';
 	import { untrack } from 'svelte';
@@ -70,7 +70,7 @@
 	const posts = $derived(paginatedPosts.results ?? []);
 	const totalPosts = $derived(posts.length);
 
-	import { m } from '$lib/paraglide/messages.js';
+	import { m } from '#lib/paraglide/messages.js';
 </script>
 
 <svelte:head><title>{m.long_lemur_clap()}</title></svelte:head>

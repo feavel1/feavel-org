@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Textarea } from '$lib/ui/textarea';
+	import { Textarea } from '#lib/ui/textarea';
 	import { BubbleMenu, getEditor, useEditorState } from '../../../tiptap/index.js';
 	import strings from '../../../strings.js';
 

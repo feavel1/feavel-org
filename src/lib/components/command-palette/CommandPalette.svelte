@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { locales, setLocale } from '$lib/paraglide/runtime';
+	import { locales, setLocale } from '#lib/paraglide/runtime';
 	import { mode, setMode, resetMode } from 'mode-watcher';
-	import * as Command from '$lib/ui/command';
+	import * as Command from '#lib/ui/command';
 	import { useConvexClient } from 'convex-svelte';
 	import { api } from '#convex/_generated/api';
 	import {
@@ -18,7 +18,7 @@
 		Monitor,
 		LoaderCircle
 	} from '@lucide/svelte';
-	import { cn } from '$lib/utils.js';
+	import { cn } from '#lib/utils.js';
 	import { onDestroy } from 'svelte';
 
 	let open = $state(false);

@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { Button } from '$lib/ui/button';
+	import { Button } from '#lib/ui/button';
 	import { NodeViewWrapper } from '../../tiptap/index.js';
 	import { AudioLines, Video, Image, CodeXml } from '@lucide/svelte';
 	import { type NodeViewProps } from '@tiptap/core';
-	import * as Popover from '$lib/ui/popover';
-	import * as Tabs from '$lib/ui/tabs';
-	import { Input } from '$lib/ui/input';
+	import * as Popover from '#lib/ui/popover';
+	import * as Tabs from '#lib/ui/tabs';
+	import { Input } from '#lib/ui/input';
 
 	const { editor, node }: NodeViewProps = $props();
 	let open = $state(false);

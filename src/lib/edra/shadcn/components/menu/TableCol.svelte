@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Separator } from '$lib/ui/separator';
+	import { Separator } from '#lib/ui/separator';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import ArrowLeftFromLine from '@lucide/svelte/icons/arrow-left-from-line';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';

@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { EdraEditor } from '$lib/edra/shadcn/index.js';
-	import { Button } from '$lib/ui/button';
-	import { Skeleton } from '$lib/ui/skeleton';
-	import * as Dialog from '$lib/ui/dialog';
+	import { EdraEditor } from '#lib/edra/shadcn/index.js';
+	import { Button } from '#lib/ui/button';
+	import { Skeleton } from '#lib/ui/skeleton';
+	import * as Dialog from '#lib/ui/dialog';
 	import { toast } from 'svelte-sonner';
 	import { useMutation, useQuery } from 'convex-svelte';
 	import { api } from '#convex/_generated/api';
 	import { slide } from 'svelte/transition';
 	import { onMount } from 'svelte';
 	import PostMetaPopover from './PostMetaPopover.svelte';
-	import type { Editor } from '$lib/edra/tiptap/Editor';
+	import type { Editor } from '#lib/edra/tiptap/Editor';
 
 	let { post, index, isOpen = false, onselect = () => {} } = $props();
 

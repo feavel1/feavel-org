@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { Button } from '$lib/ui/button';
-	import { Input } from '$lib/ui/input';
-	import { Label } from '$lib/ui/label';
-	import { Textarea } from '$lib/ui/textarea';
-	import * as Select from '$lib/ui/select';
+	import { Button } from '#lib/ui/button';
+	import { Input } from '#lib/ui/input';
+	import { Label } from '#lib/ui/label';
+	import { Textarea } from '#lib/ui/textarea';
+	import * as Select from '#lib/ui/select';
 	import { Send } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { useConvexClient } from 'convex-svelte';
-	import { getAuthContext } from '$lib/auth/context.svelte';
+	import { getAuthContext } from '#lib/auth/context.svelte';
 	const { api } = getAuthContext();
 	const client = useConvexClient();
 

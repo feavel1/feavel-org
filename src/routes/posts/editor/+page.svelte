@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import type { Id } from '#convex/_generated/dataModel';
-	import PostEditorSlab from '$lib/posts/ui/PostEditorSlab.svelte';
+	import PostEditorSlab from '#lib/posts/ui/PostEditorSlab.svelte';
 	import { useQuery, useConvexClient } from 'convex-svelte';
 	import { api } from '#convex/_generated/api';
-	import { Skeleton } from '$lib/ui/skeleton';
-	import * as Empty from '$lib/ui/empty';
+	import { Skeleton } from '#lib/ui/skeleton';
+	import * as Empty from '#lib/ui/empty';
 	import { FileEdit } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
 

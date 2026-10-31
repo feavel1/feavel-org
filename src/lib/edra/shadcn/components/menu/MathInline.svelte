@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '$lib/ui/button';
-	import { Input } from '$lib/ui/input';
+	import { Button } from '#lib/ui/button';
+	import { Input } from '#lib/ui/input';
 	import strings from '../../../strings.js';
 	import { BubbleMenu, getEditor, useEditorState } from '../../../tiptap/index.js';
 	import CornerDownLeft from '@lucide/svelte/icons/corner-down-left';

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import * as Select from '$lib/ui/select';
+	import * as Select from '#lib/ui/select';
 	import { X } from '@lucide/svelte';
 
 	let {

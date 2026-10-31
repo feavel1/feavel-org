@@ -6,7 +6,7 @@
 </script>
 
 <script lang="ts">
-	import * as Tooltip from '$lib/ui/tooltip';
+	import * as Tooltip from '#lib/ui/tooltip';
 	import { cn } from '#lib/utils.js';
 	import { type TableOfContentData } from '@tiptap/extension-table-of-contents';
 </script>
