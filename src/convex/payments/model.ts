@@ -29,7 +29,8 @@ export const hasAccess = async (
 	return record !== null;
 };
 
-/** Create a PurchaseRecord. */
+/** Create a PurchaseRecord. Idempotent per (user, resource): a repeat call returns the
+ * existing record so a double-click or retry can't double-book the ledger. */
 export const createPurchaseRecord = async (
 	ctx: MutationCtx,
 	args: {
@@ -41,6 +42,18 @@ export const createPurchaseRecord = async (
 		signature: string;
 	}
 ): Promise<Id<'purchaseRecords'>> => {
+	const existing = await ctx.db
+		.query('purchaseRecords')
+		.withIndex('by_user_resource', (q) =>
+			q
+				.eq('userId', args.userId)
+				.eq('resourceType', args.resourceType)
+				.eq('resourceId', args.resourceId)
+		)
+		.first();
+
+	if (existing) return existing._id;
+
 	return await ctx.db.insert('purchaseRecords', {
 		userId: args.userId,
 		resourceType: args.resourceType,
@@ -65,14 +78,13 @@ export const getAsk = async (
 		.first();
 };
 
-/** Upsert an Ask (create or update). */
+/** Upsert an Ask (create or update). Chain lives in env, not on the record. */
 export const upsertAsk = async (
 	ctx: MutationCtx,
 	args: {
 		resourceType: 'post';
 		resourceId: string;
 		amount: string;
-		network: string;
 		currency?: string;
 	}
 ): Promise<void> => {
@@ -84,7 +96,6 @@ export const upsertAsk = async (
 	if (existing) {
 		await ctx.db.patch(existing._id, {
 			amount: args.amount,
-			network: args.network,
 			currency: args.currency
 		});
 	} else {
@@ -92,7 +103,6 @@ export const upsertAsk = async (
 			resourceType: args.resourceType,
 			resourceId: args.resourceId,
 			amount: args.amount,
-			network: args.network,
 			currency: args.currency
 		});
 	}

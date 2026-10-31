@@ -104,15 +104,12 @@
 
 {#if auth.isAuthenticated && activeUser}
 	<Popover.Root bind:open={userPopoverOpen}>
-		<Popover.Trigger class="flex size-10 items-center justify-center rounded-full">
-			<Avatar.Root
-				class="size-9 ring-0 ring-border duration-200 ease-out ring-inset hover:ring-4"
-				onLoadingStatusChange={(status) => (avatarStatus = status)}
-			>
+		<Popover.Trigger class="user-trigger" aria-label="Account menu">
+			<Avatar.Root class="user-avatar" onLoadingStatusChange={(status) => (avatarStatus = status)}>
 				<Avatar.Image src={activeUser?.image} alt={activeUser?.name} />
 				<Avatar.Fallback>
 					{#if avatarStatus === 'loading'}
-						<div class="size-full animate-pulse rounded-md bg-muted"></div>
+						<div class="user-avatar-pending"></div>
 					{:else}
 						<AvatarMarble name={activeUser?.name} />
 					{/if}
@@ -148,13 +145,17 @@
 		</Popover.Content>
 	</Popover.Root>
 {:else if auth.isLoading || auth.isAuthenticated}
-	<div class="flex size-10 items-center justify-center">
-		<div class="size-9 animate-pulse rounded-md bg-muted"></div>
+	<!-- Same 1.5rem box as the signed-in trigger: confirming the session must not
+	     change the nav row's height (it used to be 2.5rem here, 1.5rem after). -->
+	<div class="user-trigger" aria-busy="true">
+		<div class="user-avatar user-avatar-pending"></div>
 	</div>
 {:else if signInTrigger}
 	{@render signInTrigger({ open: () => (signInDialogOpen = true) })}
 {:else}
-	<Button onclick={() => (signInDialogOpen = true)}>Sign in</Button>
+	<button type="button" class="user-signin" onclick={() => (signInDialogOpen = true)}>
+		Sign in
+	</button>
 {/if}
 <!-- SignIn Dialog - Outside of auth wrappers to prevent disappearing during registration -->
 <Dialog.Root
@@ -174,3 +175,79 @@
 		{/key}
 	</Dialog.Content>
 </Dialog.Root>
+
+<style>
+	/* Signed-out and signed-in states share one box (1.5rem tall) and one visual
+	   register — micro-caps, hairline underline, quiet opacity — so the nav reads
+	   as a single typographic row and the auth swap never resizes it. */
+	.user-trigger {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		height: 1.5rem;
+		padding: 0;
+		border: 0;
+		background: none;
+		cursor: pointer;
+		flex-shrink: 0;
+	}
+	.user-trigger:focus-visible {
+		outline: 1px solid var(--ring);
+		outline-offset: 3px;
+	}
+
+	.user-avatar {
+		width: 1.5rem;
+		height: 1.5rem;
+		flex-shrink: 0;
+		filter: grayscale(1);
+		transition: filter 0.2s ease;
+	}
+	.user-trigger:hover .user-avatar,
+	.user-trigger:global([aria-expanded='true']) .user-avatar {
+		filter: grayscale(0);
+	}
+
+	.user-avatar-pending {
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: 9999px;
+		background: color-mix(in oklch, var(--foreground) 8%, transparent);
+		animation: user-pulse 1.4s ease-in-out infinite;
+	}
+	@keyframes user-pulse {
+		50% {
+			opacity: 0.45;
+		}
+	}
+
+	.user-signin {
+		height: 1.5rem;
+		padding: 0;
+		border: 0;
+		background: none;
+		cursor: pointer;
+		font-family: inherit;
+		font-size: 0.6875rem;
+		font-weight: 400;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		text-decoration: none;
+		line-height: 1;
+		color: var(--muted-foreground);
+		transition: color 0.2s;
+	}
+	.user-signin:hover {
+		color: var(--foreground);
+	}
+	.user-signin:focus-visible {
+		outline: 1px solid var(--ring);
+		outline-offset: 3px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.user-avatar-pending {
+			animation: none;
+		}
+	}
+</style>

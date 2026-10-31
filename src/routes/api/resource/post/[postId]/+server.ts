@@ -6,15 +6,24 @@ import { createConvexHttpClient } from '@mmailaender/convex-better-auth-svelte/s
 import { api } from '#convex/_generated/api';
 import type { Id } from '#convex/_generated/dataModel';
 import { TREASURY_ADDRESS, FACILITATOR_URL } from '$app/env/private';
+import { PUBLIC_X402_TOKEN_MINT, PUBLIC_X402_NETWORK } from '$app/env/public';
 
 if (!TREASURY_ADDRESS || !FACILITATOR_URL)
 	throw new Error('Missing TREASURY_ADDRESS or FACILITATOR_URL');
 
 const facilitatorClient = new HTTPFacilitatorClient({ url: FACILITATOR_URL });
-const resourceServer = new x402ResourceServer(facilitatorClient).register(
-	'solana:*',
-	new ExactSvmScheme()
-);
+// ponytail: the default money parser resolves `$x` to a known-network USDC. Pin the mint from
+// env instead so devnet/prod differ by config, not by code. Unset = package defaults.
+// AssetAmount carries no network — the scheme supplies that from the route.
+const svmScheme = new ExactSvmScheme();
+if (PUBLIC_X402_TOKEN_MINT) {
+	svmScheme.registerMoneyParser(async (amount) => ({
+		asset: PUBLIC_X402_TOKEN_MINT,
+		// 6 decimals, as USDC. Change the exponent if you ever pin a non-USDC mint.
+		amount: String(Math.round(Number(amount) * 1_000_000))
+	}));
+}
+const resourceServer = new x402ResourceServer(facilitatorClient).register('solana:*', svmScheme);
 await resourceServer.initialize();
 
 export async function GET({ params, request, locals }) {
@@ -38,12 +47,15 @@ export async function GET({ params, request, locals }) {
 		return json(post);
 	}
 
-	// Build dynamic payment requirements from the Ask
+	// Build dynamic payment requirements from the Ask. Chain is deployment config, not
+	// per-record state — a stored network would pin a stale testnet during a prod switch.
+	const network = (PUBLIC_X402_NETWORK ??
+		'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1') as `${string}:${string}`;
 	const paymentReq = (
 		await resourceServer.buildPaymentRequirements({
 			scheme: 'exact',
 			price: `$${ask.amount}`,
-			network: ask.network as `${string}:${string}`,
+			network,
 			payTo: TREASURY_ADDRESS
 		})
 	)[0];
@@ -83,13 +95,16 @@ export async function GET({ params, request, locals }) {
 	}
 
 	const settleResult = await resourceServer.settlePayment(paymentPayload, paymentReq);
+	if (!settleResult.success) {
+		return json({ error: 'Settlement failed', reason: settleResult.errorReason }, { status: 402 });
+	}
 
 	// Write PurchaseRecord via Convex mutation
 	await convex.mutation(api.payments.mutations.createPurchaseRecord, {
 		resourceType: 'post',
 		resourceId: postId,
 		amount: ask.amount,
-		network: ask.network,
+		network,
 		signature: rawPayment
 	});
 

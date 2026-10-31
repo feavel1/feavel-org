@@ -267,7 +267,8 @@
 	<!-- Return null by not rendering anything -->
 {:else if (isLoading || (organizationListResponse?.isLoading ?? false) || (activeOrganizationResponse?.isLoading ?? false)) && !organizationList && !activeOrganization}
 	<!-- Gate 3: Loading state - only show if queries are loading AND no data is available yet -->
-	<div class="h-8 w-40 animate-pulse rounded-md bg-muted"></div>
+	<!-- Matches the org-trigger height (1.375rem mark) so the nav row never resizes. -->
+	<div class="org-skeleton" aria-busy="true"></div>
 {:else if organizationList && organizationList.length === 0}
 	<!-- Gate 4: No organizations - show create organization modal -->
 	<Dialog.Root bind:open={createOrganizationDialogOpen}>
@@ -290,10 +291,13 @@
 			{#snippet child({ props })}
 				<!-- Matches the nav's quiet typographic register: no border, no card,
 				     no shadow. A hairline rule and micro-caps label carry the weight. -->
+				<!-- Below `md` the name and caret are hidden: the mark alone is the
+				     trigger, so the nav keeps its width on phones. -->
 				<button
 					{...props}
 					class="org-trigger"
 					aria-label="Switch organization: {activeOrganization?.name ?? 'none'}"
+					title={activeOrganization?.name}
 				>
 					<span class="org-mark" aria-hidden="true">
 						{#if activeOrganization?.logo}
@@ -383,7 +387,9 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
+		height: 1.5rem;
 		max-width: 11rem;
+		flex-shrink: 0;
 		padding: 0;
 		border: 0;
 		background: none;
@@ -393,17 +399,25 @@
 		line-height: 1;
 		transition: color 0.2s ease;
 	}
-	.org-trigger:hover {
-		color: var(--foreground);
-	}
-	/* `aria-expanded` is injected by the Popover primitive, so Svelte cannot
-	   statically see it on this element. */
+	.org-trigger:hover,
 	.org-trigger:global([aria-expanded='true']) {
 		color: var(--foreground);
 	}
 	.org-trigger:focus-visible {
 		outline: 1px solid var(--ring);
 		outline-offset: 4px;
+	}
+
+	/* Name + caret are desktop-only; on phones the mark is the whole trigger. */
+	.org-trigger-name,
+	.org-trigger-caret {
+		display: none;
+	}
+	@media (min-width: 768px) {
+		.org-trigger-name,
+		.org-trigger-caret {
+			display: block;
+		}
 	}
 
 	.org-trigger-name {
@@ -417,6 +431,7 @@
 		/* Hairline underline keyed to the text, not a box around it. */
 		border-bottom: 1px solid color-mix(in oklch, currentColor 30%, transparent);
 		padding-bottom: 0.1875rem;
+		line-height: 1;
 	}
 
 	.org-trigger-caret {
@@ -426,6 +441,8 @@
 		opacity: 0.45;
 		transition: opacity 0.2s ease;
 	}
+	/* ponytail: :global — ChevronsUpDownIcon is a component, so its class lands
+	   on a child Svelte can't statically match. */
 	.org-trigger:hover :global(.org-trigger-caret),
 	.org-trigger:global([aria-expanded='true']) :global(.org-trigger-caret) {
 		opacity: 0.8;
@@ -437,8 +454,8 @@
 		align-items: center;
 		justify-content: center;
 		flex-shrink: 0;
-		width: 1.375rem;
-		height: 1.375rem;
+		width: 1.5rem;
+		height: 1.5rem;
 		border: 1px solid color-mix(in oklch, var(--foreground) 18%, transparent);
 		color: var(--foreground);
 		font-family: var(--font-heading);
@@ -648,6 +665,24 @@
 		font-size: 0.6875rem;
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
+	}
+
+	/* No-org state: same restraint as the trigger. */
+	.org-skeleton {
+		width: 1.5rem;
+		height: 1.5rem;
+		background: color-mix(in oklch, var(--foreground) 6%, transparent);
+		animation: pulse 1.4s ease-in-out infinite;
+	}
+	@media (min-width: 768px) {
+		.org-skeleton {
+			width: 7rem;
+		}
+	}
+	@keyframes pulse {
+		50% {
+			opacity: 0.4;
+		}
 	}
 
 	/* No-org state: same restraint as the trigger. */

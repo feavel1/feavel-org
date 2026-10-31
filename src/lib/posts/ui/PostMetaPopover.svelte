@@ -94,7 +94,6 @@
 					resourceType: 'post',
 					resourceId: postId,
 					amount: p,
-					network: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
 					currency: 'USD'
 				});
 			} else if (askQuery.data) {
@@ -181,7 +180,7 @@
 		<div class="meta-rule" aria-hidden="true"></div>
 
 		<div class="field">
-			<label class="field-label" for="post-price-{postId}">Price (SOL)</label>
+			<label class="field-label" for="post-price-{postId}">Price (USDC)</label>
 			<input
 				id="post-price-{postId}"
 				type="text"

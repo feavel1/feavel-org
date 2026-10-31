@@ -1,54 +1,50 @@
-# sv
+# feavel-hub
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A personal hub: blog, portfolio, games and audio player in one app — with real accounts, organizations and an admin dashboard.
 
-## Creating a project
+**Stack:** SvelteKit (Svelte 5 runes) · Convex · Better Auth · Tailwind v4 · Cloudflare Workers
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Features
 
-```sh
-# create a new project
-npx sv create my-app
+- **Accounts** — sign up / sign in with email + password. Sessions, password reset, email verification, API keys.
+- **Organizations** — users belong to organizations, invite members, switch active org.
+- **Admin dashboard** — `/admin`. List and search users and organizations, edit profiles, change roles, ban, delete, set passwords, sign out everywhere, impersonate users. Server-enforced: every admin action re-checks permissions on the backend.
+- **Blog** — write posts in a rich text editor (TipTap) with markdown, code blocks, math, tables and images. Filter and browse posts.
+- **Portfolio / services** — project showcase and a contact form that stores inquiries.
+- **Games** — chess and tic-tac-toe.
+- **Audio player** — play local audio with a waveform visualizer.
+- **Wallets** — Solana wallet connection and x402 payments.
+- **i18n** — English, Chinese, Russian via Paraglide.
+
+## Getting started
+
+```bash
+bun install
+bun x convex dev      # backend + type generation
+bun run dev           # http://localhost:5173
 ```
 
-To recreate this project with the same configuration:
+Check types:
 
-```sh
-# recreate this project
-bun x sv@1.1.1 create --template minimal --types ts --add prettier eslint tailwindcss="plugins:typography,forms" enhanced-img sveltekit-adapter="adapter:cloudflare+cfTarget:workers" paraglide="languageTags:en, cn, ru+demo:yes" ai-tools="ide:other" playwright="demo:yes" vitest="usages:unit,component" --install bun feavel-hub-sk3
+```bash
+bun x wrangler types && bun run check
 ```
 
-## Adding features
+## Becoming an admin
 
-Add features to your project with `sv add`:
+Set your Better Auth user id on the deployment, then open `/admin`:
 
-```sh
-npx sv add
+```bash
+bun x convex env set ADMIN_USER_IDS "<your-user-id>"
 ```
 
-For example, to add Tailwind CSS:
+Once one admin exists, promote others from the dashboard.
 
-```sh
-npx sv add tailwindcss
+## Layout
+
 ```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+src/
+  routes/       pages (admin, posts, services, games, (auth))
+  lib/          UI components, feature modules, i18n
+  convex/       backend: schema, queries, mutations, auth
 ```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.

@@ -33,10 +33,12 @@
 	import UserButton from '#lib/users/ui/UserButton.svelte';
 	import AuthProvider from '#lib/auth/ui/AuthProvider.svelte';
 	import MobileNav from '#lib/components/navigation/MobileNav.svelte';
+	import NavControls from '#lib/components/navigation/NavControls.svelte';
+	import SearchButton from '#lib/components/navigation/SearchButton.svelte';
 	import UserProfileHost from '#lib/users/ui/UserProfileHost.svelte';
 	import OrganizationProfileHost from '#lib/organizations/ui/OrganizationProfileHost.svelte';
 	import { ModeWatcher } from 'mode-watcher';
-	import CommandPalette from '#lib/components/command-palette/CommandPalette.svelte';
+	import SearchOverlay from '#lib/components/search/SearchOverlay.svelte';
 	import AudioControls from '#lib/player/AudioControls.svelte';
 
 	let { children, data } = $props();
@@ -74,11 +76,18 @@
 			</div>
 
 			<div class="nav-utils">
-				<CommandPalette />
-				{#if AUTH_CONSTANTS.organizations}
-					<OrganizationSwitcher initialData={data.initialData} />
-				{/if}
-				<UserButton initialData={data.initialData} />
+				<!-- Account cluster leads the group. Every state it can render in
+				     (signed-out / checking / org+avatar) is pinned to the same
+				     fixed height, so nothing above or below it moves. -->
+				<div class="nav-account">
+					{#if AUTH_CONSTANTS.organizations}
+						<OrganizationSwitcher initialData={data.initialData} />
+					{/if}
+					<UserButton initialData={data.initialData} />
+				</div>
+				<span class="nav-divider" aria-hidden="true"></span>
+				<SearchButton />
+				<NavControls />
 				<MobileNav />
 			</div>
 		</nav>
@@ -90,6 +99,8 @@
 
 		<AudioControls />
 	</div>
+
+	<SearchOverlay />
 
 	<UserProfileHost initialData={data.initialData} />
 
@@ -229,12 +240,36 @@
 		display: flex;
 		align-items: center;
 		gap: 0.875rem;
+		min-height: 1.5rem;
 	}
 
-	/* Align all utility children consistently */
+	/* One fixed box for every account state. The cluster never reflows to a
+	   different height while Convex re-confirms the token. */
+	.nav-account {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		height: 1.5rem;
+		flex-shrink: 0;
+	}
+
+	.nav-divider {
+		width: 1px;
+		height: 1rem;
+		background: var(--border);
+		flex-shrink: 0;
+		margin-inline: 0.125rem;
+	}
+
+	/* Align all utility children consistently — inline-flex keeps the box at
+	   content height so `line-height: normal` cannot inflate the nav row. */
 	.nav-utils :global(> *) {
 		display: inline-flex;
 		align-items: center;
+	}
+
+	.nav-utils :global(> .nav-account) {
+		display: flex;
 	}
 
 	/* ── Content column ── */

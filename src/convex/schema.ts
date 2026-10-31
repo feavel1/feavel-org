@@ -36,7 +36,7 @@ const schema = defineSchema({
 		resourceType: v.union(v.literal('post')),
 		resourceId: v.string(),
 		amount: v.string(),
-		network: v.string(),
+		// ponytail: chain + mint are deployment config (PUBLIC_X402_*), never per-record.
 		currency: v.optional(v.string())
 	}).index('by_resource', ['resourceType', 'resourceId']),
 

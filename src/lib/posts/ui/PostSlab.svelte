@@ -12,7 +12,11 @@
 	import type { Id } from '#convex/_generated/dataModel';
 	import { Lock, SendHorizontal, SmilePlus, MessageCircle } from '@lucide/svelte';
 	import { x402 } from '#lib/wallet/x402';
+	import { wallet, walletAddress } from '#lib/wallet/standard';
 	import WalletButton from '#lib/wallet/ui/WalletButton.svelte';
+	import { useAuth } from '@mmailaender/convex-better-auth-svelte/svelte';
+	import { page } from '$app/state';
+	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
 
 	let {
@@ -38,6 +42,13 @@
 	} = $props();
 
 	const client = useConvexClient();
+	const auth = useAuth();
+	// PurchaseRecord is keyed by the signed-in user, so paying before signing in
+	// would settle on-chain and then fail to write the record.
+	const signedIn = $derived(auth.isAuthenticated);
+	const signInHref = $derived(
+		`/signin?redirectTo=${encodeURIComponent(page.url.pathname + page.url.search)}`
+	);
 	const postQuery = useQuery(api.posts.queries.getPost, () =>
 		isOpen ? { postId: post._id } : 'skip'
 	);
@@ -65,10 +76,24 @@
 		paying = true;
 		try {
 			const res = await x402.fetch(`/api/resource/post/${post._id}`);
-			const data = (await res.json()) as { content?: unknown };
-			paidContent = data.content ?? data;
-		} catch {
-			/* handled by store */
+			// The paid response can arrive twice: the wrapper's own 204 completion, or a
+			// 402 on the post-settlement retry (reused proof rejected). Either way the
+			// PurchaseRecord is written and Convex pushes the unlocked post. Don't blank
+			// an already-unlocked post.
+			if (res.status !== 204) {
+				if (res.status === 402) {
+					toast.success('Payment confirmed — unlocking…');
+				} else {
+					const data = (await res.json()) as { content?: unknown };
+					paidContent = data.content ?? data;
+					toast.success('Payment confirmed — post unlocked');
+				}
+			}
+		} catch (err) {
+			// The store already sets $x402.error; the toast covers the case where the
+			// paywall has scrolled out of view (e.g. wallet popup blocked the click).
+			const msg = (err as Error)?.message ?? 'Payment failed';
+			toast.error(msg.includes('reject') ? 'Payment cancelled in wallet' : msg);
 		} finally {
 			paying = false;
 		}
@@ -132,10 +157,27 @@
 					<div class="paywall-icon"><Lock size={24} /></div>
 					<h3 class="paywall-heading">Pay to read</h3>
 					<p class="paywall-text">This post costs {postQuery.data.ask.amount} USDC</p>
-					<WalletButton />
-					<Button onclick={handlePay} disabled={paying} class="paywall-btn">
-						{paying ? 'Processing...' : `Pay ${postQuery.data.ask.amount} USDC`}
-					</Button>
+					{#if !signedIn}
+						<p class="paywall-hint">
+							Sign in first — purchases are saved to your account, so the post stays unlocked after
+							you refresh.
+						</p>
+						<a href={signInHref} class="paywall-signin">Sign in to unlock</a>
+					{:else}
+						<WalletButton />
+						<Button onclick={handlePay} disabled={paying || !$wallet.connected} class="paywall-btn">
+							{paying ? 'Processing...' : `Pay ${postQuery.data.ask.amount} USDC`}
+						</Button>
+						{#if !$wallet.connected}
+							<p class="paywall-hint">Connect a Solana wallet to pay.</p>
+						{:else}
+							<p class="paywall-hint">
+								Pay with {$walletAddress
+									? `${$walletAddress.slice(0, 4)}…${$walletAddress.slice(-4)}`
+									: 'your wallet'}. Keep the page open until it confirms.
+							</p>
+						{/if}
+					{/if}
 					{#if $x402.error}<p class="paywall-error">{$x402.error}</p>{/if}
 				</div>
 			{:else if postQuery.data?.post}
@@ -348,6 +390,27 @@
 		color: var(--muted-foreground);
 		opacity: 0.6;
 		margin: 0;
+	}
+	.paywall-hint {
+		font-size: 0.6875rem;
+		line-height: 1.5;
+		color: var(--muted-foreground);
+		opacity: 0.5;
+		max-width: 22rem;
+		text-align: center;
+		margin: 0;
+	}
+	.paywall-signin {
+		font-size: 0.75rem;
+		font-weight: 500;
+		padding: 0.5rem 1.25rem;
+		border: 1px solid var(--border);
+		color: var(--foreground);
+		text-decoration: none;
+		transition: border-color 0.15s;
+	}
+	.paywall-signin:hover {
+		border-color: var(--foreground);
 	}
 	.paywall-error {
 		font-size: 0.6875rem;

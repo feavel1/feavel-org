@@ -3,6 +3,7 @@ import { x402ResourceServer, HTTPFacilitatorClient } from '@x402/core/server';
 import { ExactSvmScheme } from '@x402/svm/exact/server';
 import { encodePaymentRequiredHeader } from '@x402/core/http';
 import { TREASURY_ADDRESS, FACILITATOR_URL } from '$app/env/private';
+import { PUBLIC_X402_NETWORK } from '$app/env/public';
 
 if (!TREASURY_ADDRESS || !FACILITATOR_URL)
 	throw new Error('Missing TREASURY_ADDRESS or FACILITATOR_URL');
@@ -18,7 +19,8 @@ const paymentReq = (
 	await resourceServer.buildPaymentRequirements({
 		scheme: 'exact',
 		price: '$1',
-		network: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+		network: (PUBLIC_X402_NETWORK ??
+			'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1') as `${string}:${string}`,
 		payTo: TREASURY_ADDRESS
 	})
 )[0];
@@ -54,8 +56,10 @@ export async function GET({ request }) {
 		return json({ error: 'Invalid Payment', reason: invalidReason }, { status: 402 });
 	}
 
-	console.log(paymentPayload);
 	const settleResult = await resourceServer.settlePayment(paymentPayload, paymentReq);
+	if (!settleResult.success) {
+		return json({ error: 'Settlement failed', reason: settleResult.errorReason }, { status: 402 });
+	}
 
 	return json(
 		{ message: 'Premium content unlocked!', timestamp: new Date().toISOString() },

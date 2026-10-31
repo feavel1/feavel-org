@@ -43,7 +43,6 @@ export const upsertAsk = mutation({
 		resourceType: v.union(v.literal('post')),
 		resourceId: v.id('posts'),
 		amount: v.string(),
-		network: v.string(),
 		currency: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
@@ -62,7 +61,6 @@ export const upsertAsk = mutation({
 			resourceType: args.resourceType,
 			resourceId: args.resourceId,
 			amount: args.amount,
-			network: args.network,
 			currency: args.currency
 		});
 	}
