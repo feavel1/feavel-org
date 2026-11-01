@@ -104,7 +104,7 @@
 
 {#if auth.isAuthenticated && activeUser}
 	<Popover.Root bind:open={userPopoverOpen}>
-		<Popover.Trigger class="user-trigger" aria-label="Account menu">
+		<Popover.Trigger class="nav-util" aria-label="Account menu">
 			<Avatar.Root class="user-avatar" onLoadingStatusChange={(status) => (avatarStatus = status)}>
 				<Avatar.Image src={activeUser?.image} alt={activeUser?.name} />
 				<Avatar.Fallback>
@@ -145,15 +145,15 @@
 		</Popover.Content>
 	</Popover.Root>
 {:else if auth.isLoading || auth.isAuthenticated}
-	<!-- Same 1.5rem box as the signed-in trigger: confirming the session must not
-	     change the nav row's height (it used to be 2.5rem here, 1.5rem after). -->
-	<div class="user-trigger" aria-busy="true">
+	<!-- Same box as the signed-in trigger: confirming the session must not change
+	     the nav row's height (it used to be 2.5rem here, 1.5rem after). -->
+	<div class="nav-util" aria-busy="true">
 		<div class="user-avatar user-avatar-pending"></div>
 	</div>
 {:else if signInTrigger}
 	{@render signInTrigger({ open: () => (signInDialogOpen = true) })}
 {:else}
-	<button type="button" class="user-signin" onclick={() => (signInDialogOpen = true)}>
+	<button type="button" class="nav-util nav-util-text" onclick={() => (signInDialogOpen = true)}>
 		Sign in
 	</button>
 {/if}
@@ -177,40 +177,27 @@
 </Dialog.Root>
 
 <style>
-	/* Signed-out and signed-in states share one box (1.5rem tall) and one visual
-	   register — micro-caps, hairline underline, quiet opacity — so the nav reads
-	   as a single typographic row and the auth swap never resizes it. */
-	.user-trigger {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		height: 1.5rem;
-		padding: 0;
-		border: 0;
-		background: none;
-		cursor: pointer;
-		flex-shrink: 0;
-	}
-	.user-trigger:focus-visible {
-		outline: 1px solid var(--ring);
-		outline-offset: 3px;
-	}
+	/* Signed-in and signed-out states share one box (--nav-util-size) and one
+	   register (see the `nav-util` utility in app.css), so the auth swap never
+	   resizes the nav row. */
 
+	/* The avatar viewport: square-ish chip is wrong for an identity, so this is
+	   the one nav trigger that keeps a circle — just desaturated until hover. */
 	.user-avatar {
-		width: 1.5rem;
-		height: 1.5rem;
+		width: var(--nav-util-size);
+		height: var(--nav-util-size);
 		flex-shrink: 0;
 		filter: grayscale(1);
 		transition: filter 0.2s ease;
 	}
-	.user-trigger:hover .user-avatar,
-	.user-trigger:global([aria-expanded='true']) .user-avatar {
+	:global(.nav-util:hover) .user-avatar,
+	:global(.nav-util[aria-expanded='true']) .user-avatar {
 		filter: grayscale(0);
 	}
 
 	.user-avatar-pending {
-		width: 1.5rem;
-		height: 1.5rem;
+		width: var(--nav-util-size);
+		height: var(--nav-util-size);
 		border-radius: 9999px;
 		background: color-mix(in oklch, var(--foreground) 8%, transparent);
 		animation: user-pulse 1.4s ease-in-out infinite;
@@ -219,30 +206,6 @@
 		50% {
 			opacity: 0.45;
 		}
-	}
-
-	.user-signin {
-		height: 1.5rem;
-		padding: 0;
-		border: 0;
-		background: none;
-		cursor: pointer;
-		font-family: inherit;
-		font-size: 0.6875rem;
-		font-weight: 400;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		text-decoration: none;
-		line-height: 1;
-		color: var(--muted-foreground);
-		transition: color 0.2s;
-	}
-	.user-signin:hover {
-		color: var(--foreground);
-	}
-	.user-signin:focus-visible {
-		outline: 1px solid var(--ring);
-		outline-offset: 3px;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

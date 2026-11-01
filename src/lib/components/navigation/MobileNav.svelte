@@ -4,14 +4,16 @@
 	import MenuIcon from '@lucide/svelte/icons/menu';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { navLinks, type ResolvedHref } from './nav-links.js';
 
 	let open = $state(false);
 
-	const navItems = [
-		{ label: 'Services', href: '/services' },
-		{ label: 'Posts', href: '/posts' },
-		{ label: 'Games', href: '/games' }
-	] as const;
+	// Secondary destinations — not in the main row, but reachable in one tap.
+	const quickLinks = [
+		{ href: resolve('/services#portfolio'), label: 'Portfolio' },
+		{ href: resolve('/services#contact'), label: 'Contact' },
+		{ href: resolve('/posts/editor'), label: 'Post Editor' }
+	];
 
 	function isActive(href: string): boolean {
 		const current = page.url.pathname;
@@ -20,8 +22,13 @@
 	}
 </script>
 
-<div class="flex md:hidden">
-	<button class="mobile-nav-trigger" aria-label="Open navigation" onclick={() => (open = true)}>
+<div class="flex">
+	<button
+		type="button"
+		class="nav-util nav-util-icon md:hidden"
+		aria-label="Open navigation"
+		onclick={() => (open = true)}
+	>
 		<MenuIcon size={18} />
 	</button>
 </div>
@@ -48,10 +55,10 @@
 
 				<!-- Main nav -->
 				<nav class="flex flex-col gap-0.5">
-					{#each navItems as item (item.href)}
+					{#each navLinks as item (item.href)}
 						{@const active = isActive(item.href)}
 						<a
-							href={resolve(item.href)}
+							href={item.href as ResolvedHref}
 							class="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium transition-all"
 							class:font-heading={active}
 							class:font-semibold={active}
@@ -67,7 +74,7 @@
 									aria-hidden="true"
 								></span>
 							{/if}
-							<span>{item.label}</span>
+							<span>{item.label()}</span>
 						</a>
 					{/each}
 				</nav>
@@ -80,21 +87,9 @@
 						class="px-2 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase"
 						>Quick links</span
 					>
-					<a
-						href="/services#portfolio"
-						class="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-						onclick={() => (open = false)}>Portfolio</a
-					>
-					<a
-						href="/services#contact"
-						class="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-						onclick={() => (open = false)}>Contact</a
-					>
-					<a
-						href="/posts/editor"
-						class="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-						onclick={() => (open = false)}>Post Editor</a
-					>
+					{#each quickLinks as link (link.href)}
+						<a href={link.href} class="quick-link" onclick={() => (open = false)}>{link.label}</a>
+					{/each}
 				</div>
 			</div>
 
@@ -106,19 +101,15 @@
 </Drawer.Root>
 
 <style>
-	.mobile-nav-trigger {
-		display: inline-flex;
-		align-items: center;
+	.quick-link {
+		border-radius: 0;
+		padding: 0.5rem 0.75rem;
+		font-size: 0.875rem;
 		color: var(--muted-foreground);
-		opacity: 0.4;
-		background: none;
-		border: none;
-		padding: 0;
-		cursor: pointer;
-		transition: opacity 0.2s;
+		transition: color 0.2s;
 	}
-	.mobile-nav-trigger:hover {
-		opacity: 0.7;
+	.quick-link:hover {
+		color: var(--foreground);
 	}
 
 	/* ponytail: :global — .mobile-drawer-close is on Drawer.Close (child component) */

@@ -34,6 +34,7 @@
 	import AuthProvider from '#lib/auth/ui/AuthProvider.svelte';
 	import MobileNav from '#lib/components/navigation/MobileNav.svelte';
 	import NavControls from '#lib/components/navigation/NavControls.svelte';
+	import { navLinks, type ResolvedHref } from '#lib/components/navigation/nav-links.js';
 	import SearchButton from '#lib/components/navigation/SearchButton.svelte';
 	import UserProfileHost from '#lib/users/ui/UserProfileHost.svelte';
 	import OrganizationProfileHost from '#lib/organizations/ui/OrganizationProfileHost.svelte';
@@ -44,8 +45,6 @@
 	let { children, data } = $props();
 
 	createSvelteAuthClient({ authClient: authClient, getServerState: () => data.authState });
-
-	import { m } from '#lib/paraglide/messages.js';
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
@@ -69,9 +68,9 @@
 			<div class="nav-left">
 				<a href={resolve('/')} class="nav-brand">feavel</a>
 				<div class="nav-links">
-					<a href={resolve('/posts')} class="nav-link">{m.jolly_gazelle_surge()}</a>
-					<a href={resolve('/services')} class="nav-link">{m.blank_quail_drift()}</a>
-					<a href={resolve('/games')} class="nav-link">{m.thin_koala_dock()}</a>
+					{#each navLinks as link (link.href)}
+						<a href={link.href as ResolvedHref} class="nav-link">{link.label()}</a>
+					{/each}
 				</div>
 			</div>
 
@@ -240,7 +239,7 @@
 		display: flex;
 		align-items: center;
 		gap: 0.875rem;
-		min-height: 1.5rem;
+		min-height: var(--nav-util-size);
 	}
 
 	/* One fixed box for every account state. The cluster never reflows to a
@@ -249,7 +248,7 @@
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
-		height: 1.5rem;
+		height: var(--nav-util-size);
 		flex-shrink: 0;
 	}
 

@@ -49,6 +49,13 @@
 
 	/* Layout token consumed by wide pages (see +layout.svelte FORM note). */
 	--content-max-width: 48rem;
+
+	/* Every interactive box in the nav bar is exactly this tall. Auth/billing/org
+	   states settle asynchronously, so any height difference between them makes
+	   the whole bar jump. Style nav triggers from these two tokens, never from
+	   ad-hoc sizes. */
+	--nav-util-size: 1.5rem;
+	--nav-util-min-size: 1.5rem;
 }
 
 .dark {
@@ -130,6 +137,56 @@
 	--font-sans: 'Inter Variable', system-ui, -apple-system, sans-serif;
 	--font-heading: 'EB Garamond Variable', Georgia, 'Times New Roman', serif;
 	--font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* ── Nav utilities ─────────────────────────────────────────────────────────
+   The nav is quiet typography: text on surface, nothing more. Every icon
+   trigger, text trigger and micro-caps menu item in the shell shares this
+   register — see NavControls, SearchButton, UserButton, OrganizationSwitcher. */
+@utility nav-util {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: var(--nav-util-size);
+	flex-shrink: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	cursor: pointer;
+	font-family: inherit;
+	line-height: 1;
+	color: var(--muted-foreground);
+	transition:
+		color 0.2s,
+		opacity 0.2s;
+
+	&:hover,
+	&[aria-expanded='true'] {
+		color: var(--foreground);
+	}
+	&:focus-visible {
+		outline: 1px solid var(--ring);
+		outline-offset: 4px;
+	}
+}
+
+/* Icon triggers sit slightly ghosted so the row reads as text first. */
+@utility nav-util-icon {
+	opacity: 0.45;
+
+	&:hover,
+	&[aria-expanded='true'] {
+		opacity: 1;
+	}
+}
+
+/* Text triggers carry the micro-caps register. */
+@utility nav-util-text {
+	font-size: 0.6875rem;
+	font-weight: 400;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	text-decoration: none;
 }
 
 @utility page {

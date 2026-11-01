@@ -274,7 +274,7 @@
 	<Dialog.Root bind:open={createOrganizationDialogOpen}>
 		<Dialog.Trigger>
 			{#snippet child({ props })}
-				<button {...props} class="org-empty-trigger">
+				<button {...props} class="org-empty-trigger nav-util nav-util-text">
 					<PlusIcon class="size-3" />
 					<span>New organization</span>
 				</button>
@@ -295,7 +295,7 @@
 				     trigger, so the nav keeps its width on phones. -->
 				<button
 					{...props}
-					class="org-trigger"
+					class="org-trigger nav-util"
 					aria-label="Switch organization: {activeOrganization?.name ?? 'none'}"
 					title={activeOrganization?.name}
 				>
@@ -383,29 +383,15 @@
 	   The nav is quiet typography; this control has to disappear into it rather
 	   than sit in it as a bordered widget. No border, no card, no shadow — a
 	   hairline rule under the name does the separating work instead. */
+	/* Colour/height/reset come from the shared `nav-util` utility (app.css). */
 	.org-trigger {
-		display: inline-flex;
-		align-items: center;
 		gap: 0.5rem;
-		height: 1.5rem;
 		max-width: 11rem;
-		flex-shrink: 0;
-		padding: 0;
-		border: 0;
-		background: none;
-		cursor: pointer;
 		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
-		font-family: inherit;
-		line-height: 1;
-		transition: color 0.2s ease;
 	}
 	.org-trigger:hover,
 	.org-trigger:global([aria-expanded='true']) {
 		color: var(--foreground);
-	}
-	.org-trigger:focus-visible {
-		outline: 1px solid var(--ring);
-		outline-offset: 4px;
 	}
 
 	/* Name + caret are desktop-only; on phones the mark is the whole trigger. */
@@ -454,8 +440,8 @@
 		align-items: center;
 		justify-content: center;
 		flex-shrink: 0;
-		width: 1.5rem;
-		height: 1.5rem;
+		width: var(--nav-util-size);
+		height: var(--nav-util-size);
 		border: 1px solid color-mix(in oklch, var(--foreground) 18%, transparent);
 		color: var(--foreground);
 		font-family: var(--font-heading);
@@ -669,8 +655,8 @@
 
 	/* No-org state: same restraint as the trigger. */
 	.org-skeleton {
-		width: 1.5rem;
-		height: 1.5rem;
+		width: var(--nav-util-size);
+		height: var(--nav-util-size);
 		background: color-mix(in oklch, var(--foreground) 6%, transparent);
 		animation: pulse 1.4s ease-in-out infinite;
 	}
@@ -687,19 +673,8 @@
 
 	/* No-org state: same restraint as the trigger. */
 	.org-empty-trigger {
-		display: inline-flex;
-		align-items: center;
 		gap: 0.375rem;
-		padding: 0;
-		border: 0;
-		background: none;
-		cursor: pointer;
-		font-family: inherit;
-		font-size: 0.6875rem;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
 		color: color-mix(in oklch, var(--foreground) 18%, var(--muted-foreground));
-		transition: color 0.2s ease;
 	}
 	.org-empty-trigger:hover {
 		color: var(--foreground);

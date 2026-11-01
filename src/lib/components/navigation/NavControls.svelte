@@ -36,7 +36,7 @@
 
 <!-- Theme -->
 <DropdownMenu.Root>
-	<DropdownMenu.Trigger class="nav-util-trigger" aria-label="Change theme">
+	<DropdownMenu.Trigger class="nav-util nav-util-icon" aria-label="Change theme">
 		{#if currentMode === 'light'}
 			<Sun class="size-3.5" />
 		{:else if currentMode === 'dark'}
@@ -67,7 +67,7 @@
 
 <!-- Language -->
 <DropdownMenu.Root>
-	<DropdownMenu.Trigger class="nav-util-trigger" aria-label="Change language">
+	<DropdownMenu.Trigger class="nav-util nav-util-icon" aria-label="Change language">
 		<Languages class="size-3.5" />
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content align="end" class="nav-util-menu">
@@ -91,31 +91,8 @@
 </DropdownMenu.Root>
 
 <style>
-	/* ponytail: :global — these selectors target bits-ui trigger/menu internals
+	/* ponytail: :global — these selectors target bits-ui menu internals
 	   (DropdownMenu.Trigger / Item / Content), which Svelte cannot see. */
-	:global(.nav-util-trigger) {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		padding: 0;
-		border: 0;
-		background: none;
-		cursor: pointer;
-		color: var(--muted-foreground);
-		opacity: 0.45;
-		transition:
-			opacity 0.2s,
-			color 0.2s;
-	}
-	:global(.nav-util-trigger:hover),
-	:global(.nav-util-trigger[aria-expanded='true']) {
-		opacity: 1;
-		color: var(--foreground);
-	}
-	:global(.nav-util-trigger:focus-visible) {
-		outline: 1px solid var(--ring);
-		outline-offset: 4px;
-	}
 
 	:global(.nav-util-menu) {
 		min-width: 10rem;
@@ -134,7 +111,7 @@
 	:global(.nav-util-item[data-active]) {
 		color: var(--foreground);
 	}
-	.nav-util-code {
+	:global(.nav-util-code) {
 		width: 1.75rem;
 		flex-shrink: 0;
 		color: var(--muted-foreground);
