@@ -1,108 +1,240 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { portfolioEntries } from '#lib/services/data';
 	import { EdraEditor } from '#lib/edra/shadcn/index.js';
 	import { Skeleton } from '#lib/ui/skeleton';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '#convex/_generated/api';
 	import type { Id } from '#convex/_generated/dataModel';
-	import '#lib/services/bebop.css';
 
 	const entry = $derived(portfolioEntries.find((e) => e.id === page.params.entryId));
 	const post = useQuery(api.posts.queries.getPost, () =>
 		entry?.postId ? { postId: entry.postId as Id<'posts'> } : 'skip'
 	);
 
-	const disciplineBars: Record<string, string> = {
-		music: 'disc-ruby',
-		mixing: 'disc-ruby',
-		translation: 'disc-sapphire',
-		web: 'disc-emerald'
-	};
+	// The catalogue number is positional, so it has to be found, not stored.
+	const index = $derived(portfolioEntries.findIndex((e) => e.id === page.params.entryId));
+
+	// Category is a free-form string on the record. Show it as-is; there is no
+	// fixed taxonomy to map hieroglyphs onto any more.
+	const category = $derived(entry?.category ?? '');
+
+	// resolve() only yields a route; the hash is appended, which the eslint rule
+	// cannot see through, so each template literal is annotated at its use site.
+	const backHref = `${resolve('/services')}#portfolio`;
+	const contactHref = `${resolve('/services')}#contact`;
 </script>
 
+<svelte:head><title>{entry ? `${entry.title} — Feavel` : 'Not found — Feavel'}</title></svelte:head>
+
 {#if entry}
-	{@const bar = disciplineBars[entry.category] ?? 'disc-emerald'}
-	<div class="portfolio-detail">
-		<div class="grain-overlay" aria-hidden="true"></div>
-		<header class="portfolio-detail__head" style="background-color: var(--background)">
-			<div class="portfolio-detail__bar {bar}" aria-hidden="true"></div>
-			<div class="page">
-				<a href="/services#portfolio" class="portfolio-detail__back">← Back to all work</a>
-				<h1 class="portfolio-detail__title">{entry.title}</h1>
-				<p class="portfolio-detail__tagline">{entry.tagline}</p>
+	<article class="work">
+		<header class="work-head">
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolved route + hash -->
+			<a href={backHref} class="work-back">
+				<span aria-hidden="true">←</span> All work
+			</a>
+
+			<div class="work-meta">
+				<span class="work-num">{String(index + 1).padStart(2, '0')}</span>
+				{#if category}
+					<span class="work-cat">{category}</span>
+				{/if}
 			</div>
+
+			<h1 class="work-title">{entry.title}</h1>
+			<p class="work-tagline">{entry.tagline}</p>
 		</header>
-		<div class="portfolio-detail__content page">
+
+		<div class="work-rule" aria-hidden="true"></div>
+
+		<div class="work-body">
 			{#if post.isLoading}
-				<div class="flex flex-col gap-3 py-12">
-					<Skeleton class="h-4 w-3/4" />
-					<Skeleton class="h-4 w-full" />
-					<Skeleton class="h-4 w-full" />
+				<div class="work-skeletons">
+					<Skeleton class="h-3 w-2/3" />
+					<Skeleton class="h-3 w-full" />
+					<Skeleton class="h-3 w-11/12" />
+					<Skeleton class="h-3 w-9/12" />
 				</div>
-			{:else if post.data?.post}
-				<EdraEditor content={post.data.post.content} editable={false} />
+			{:else if post.data?.post?.content}
+				<div class="work-content">
+					<EdraEditor content={post.data.post.content} editable={false} />
+				</div>
 			{:else}
-				<p class="py-12 text-sm" style="color: var(--muted-foreground)">
-					Work details coming soon.
-				</p>
+				<!-- Empty is a state, not an error: the catalogue entry exists but its
+				     write-up does not. Say so plainly and keep the way forward open. -->
+				<div class="work-empty">
+					<p class="work-empty-line">The write-up for this one isn't published yet.</p>
+					<p class="work-empty-sub">{entry.description}</p>
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+					<a href={contactHref} class="work-cta">Ask me about it →</a>
+				</div>
 			{/if}
 		</div>
-	</div>
+
+		<footer class="work-foot">
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+			<a href={contactHref} class="work-cta">Start a project like this →</a>
+		</footer>
+	</article>
 {:else}
-	<div class="page py-24">
-		<h1 class="text-3xl font-bold" style="color: var(--foreground)">Not found</h1>
-		<p class="mt-2 text-sm" style="color: var(--muted-foreground)">That work doesn't exist.</p>
-		<a
-			href="/services"
-			class="mt-4 inline-block text-sm font-medium underline underline-offset-4"
-			style="color: var(--primary)"
-		>
-			View all work
-		</a>
-	</div>
+	<section class="work-missing">
+		<p class="work-meta"><span class="work-num">00</span></p>
+		<h1 class="work-title">That work doesn't exist.</h1>
+		<p class="work-tagline">
+			The link is stale or the piece was renamed. Everything still in the catalogue is listed below.
+		</p>
+		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+		<a href={backHref} class="work-cta">See all work →</a>
+	</section>
 {/if}
 
 <style>
-	.portfolio-detail__head {
-		position: relative;
-		padding-top: 3rem;
-		padding-bottom: 2rem;
+	/* Same world as the shell: sharp corners, hairline rules, no shadows, serif
+	   headings at Inter body weight. The old page carried a stained-glass colour
+	   bar, a fixed grain overlay, and a 900-weight title — none of that is
+	   part of this system. */
+
+	.work {
+		padding: 3.5rem 0 4rem;
 	}
-	.portfolio-detail__bar {
-		height: 6px;
-		width: 100%;
+
+	/* ── Head ── */
+	.work-head {
+		display: flex;
+		flex-direction: column;
 	}
-	.portfolio-detail__back {
-		display: inline-block;
-		font-size: 0.75rem;
+	.work-back {
+		align-self: flex-start;
+		font-size: 0.6875rem;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
 		color: var(--muted-foreground);
 		text-decoration: none;
-		margin-bottom: 1.5rem;
-		transition: color 0.15s;
+		transition: color 0.2s;
 	}
-	.portfolio-detail__back:hover {
+	.work-back:hover {
 		color: var(--foreground);
 	}
-	.portfolio-detail__title {
-		font-size: 2.5rem;
-		font-weight: 900;
-		letter-spacing: -0.03em;
-		line-height: 1.1;
-		color: var(--foreground);
+	.work-back span {
+		display: inline-block;
+		transition: transform 0.2s;
 	}
-	@media (min-width: 640px) {
-		.portfolio-detail__title {
-			font-size: 3.5rem;
-		}
+	.work-back:hover span {
+		transform: translateX(-2px);
 	}
-	.portfolio-detail__tagline {
-		font-size: 0.875rem;
+
+	.work-meta {
+		display: flex;
+		align-items: baseline;
+		gap: 0.625rem;
+		margin: 2.5rem 0 0.875rem;
+	}
+	.work-num {
+		font-size: 0.5625rem;
+		letter-spacing: 0.08em;
 		color: var(--muted-foreground);
-		margin-top: 0.5rem;
 	}
-	.portfolio-detail__content {
+	.work-cat {
+		font-size: 0.5625rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--muted-foreground);
+	}
+
+	.work-title {
+		font-family: var(--font-heading);
+		font-size: clamp(1.5rem, 4vw, 2rem);
+		font-weight: 400;
+		letter-spacing: -0.02em;
+		line-height: 1.2;
+		text-wrap: balance;
+		margin: 0;
+		color: var(--foreground);
+	}
+	.work-tagline {
+		font-size: 0.8125rem;
+		line-height: 1.6;
+		color: var(--muted-foreground);
+		max-width: 34rem;
+		margin: 0.75rem 0 0;
+	}
+
+	.work-rule {
+		height: 1px;
+		background: var(--border);
+		margin: 2.5rem 0 2.5rem;
+	}
+
+	/* ── Body ── */
+	.work-body {
+		min-height: 8rem;
+	}
+	.work-skeletons {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	.work-content {
+		max-width: 68ch;
+	}
+
+	.work-empty {
+		max-width: 34rem;
+	}
+	.work-empty-line {
+		font-size: 0.8125rem;
+		line-height: 1.6;
+		color: var(--muted-foreground);
+		margin: 0;
+	}
+	.work-empty-sub {
+		font-size: 0.75rem;
+		line-height: 1.6;
+		color: var(--muted-foreground);
+		margin: 0.5rem 0 1.25rem;
+	}
+
+	/* ── Foot ── */
+	.work-foot {
+		margin-top: 4rem;
 		padding-top: 2rem;
-		padding-bottom: 6rem;
+		border-top: 1px solid var(--border);
+	}
+
+	.work-cta {
+		display: inline-block;
+		font-size: 0.625rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		text-decoration: none;
+		color: var(--foreground);
+		border-bottom: 1px solid var(--border);
+		padding-bottom: 0.125rem;
+		transition: border-color 0.2s;
+	}
+	.work-cta:hover {
+		border-color: var(--foreground);
+	}
+	.work-cta:focus-visible,
+	.work-back:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: 3px;
+	}
+
+	.work-missing {
+		padding: 5rem 0;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.work-back,
+		.work-back span,
+		.work-cta {
+			transition: none;
+		}
+		.work-back:hover span {
+			transform: none;
+		}
 	}
 </style>

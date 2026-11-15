@@ -31,6 +31,10 @@ const isPublic = createRouteMatcher([
 	'/',
 	'/signin',
 	'/create',
+	// '/services' matches only the bare index. The work-detail route lives at
+	// /services/[entryId], so without the splat every catalogue entry 307'd to
+	// /signin — on a page whose whole purpose is showing work to visitors.
+	'/services{/*rest}',
 	'/tic-tac-toe',
 	'/reset-password',
 	'/api/auth{/*rest}',

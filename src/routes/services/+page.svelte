@@ -53,7 +53,7 @@
 </section>
 
 <!-- PORTFOLIO -->
-<section class="section">
+<section class="section" id="portfolio">
 	<RevealItem><SectionHead label="Selected work" /></RevealItem>
 	<Portfolio entries={portfolioEntries} />
 </section>
@@ -100,7 +100,9 @@
 </section>
 
 <!-- CONTACT -->
-<section class="section">
+<!-- id="contact" is the target of the in-page CTAs (.slab-cta, /#contact).
+     Without it the browser finds no anchor and the click silently does nothing. -->
+<section class="section" id="contact">
 	<RevealItem><SectionHead label="Get in touch" /></RevealItem>
 	<ContactForm />
 </section>

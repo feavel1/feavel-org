@@ -4,6 +4,7 @@ import { paginationOptsValidator } from 'convex/server';
 import { authComponent, createAuth } from '../auth';
 import {
 	getPost as getPostModel,
+	listDistinctCategories,
 	listDistinctTags,
 	listOrgPosts,
 	listMyPosts,
@@ -111,7 +112,7 @@ export const listPublicPosts = query({
 		category: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
-		let posts = await listPublicPostsModel(ctx, {
+		const posts = await listPublicPostsModel(ctx, {
 			tags: args.tags,
 			category: args.category
 		});
@@ -124,6 +125,14 @@ export const listTags = query({
 	args: {},
 	handler: async (ctx) => {
 		return await listDistinctTags(ctx);
+	}
+});
+
+/** Distinct public-post categories, busiest first. Drives the filter UI. */
+export const listCategories = query({
+	args: {},
+	handler: async (ctx) => {
+		return await listDistinctCategories(ctx);
 	}
 });
 

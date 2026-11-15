@@ -100,7 +100,7 @@
 						{serviceOptions.find((s) => s.value === category)?.label ?? 'Select a service'}
 					</Select.Trigger>
 					<Select.Content>
-						{#each serviceOptions as s}
+						{#each serviceOptions as s (s.value)}
 							<Select.Item value={s.value}>{s.label}</Select.Item>
 						{/each}
 					</Select.Content>

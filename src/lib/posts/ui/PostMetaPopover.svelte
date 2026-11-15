@@ -6,7 +6,7 @@
 	import * as Dialog from '#lib/ui/dialog';
 	import { Edit, X, CheckIcon, ChevronsUpDownIcon } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
-	import { useConvexClient, useMutation, useQuery } from 'convex-svelte';
+	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { api } from '#convex/_generated/api';
 	import type { Id, Doc } from '#convex/_generated/dataModel';
 
@@ -24,6 +24,9 @@
 
 	const client = useConvexClient();
 	const allTagsQuery = useQuery(api.posts.queries.listTags);
+	// Categories are free-form strings on the record, so the picker is driven by
+	// what has already been written rather than a taxonomy baked into the source.
+	const categoriesQuery = useQuery(api.posts.queries.listCategories);
 
 	let metaOpen = $state(false);
 	let deleting = $state(false);
@@ -84,7 +87,7 @@
 			});
 		} catch (err: unknown) {
 			const msg = err instanceof Error ? err.message : 'Failed to save';
-			throw new Error(msg);
+			throw new Error(msg, { cause: err });
 		}
 
 		try {
@@ -280,11 +283,11 @@
 				</Select.Trigger>
 				<Select.Content>
 					<Select.Item value="">None</Select.Item>
-					<Select.Item value="tutorial">Tutorial</Select.Item>
-					<Select.Item value="essay">Essay</Select.Item>
-					<Select.Item value="fiction">Fiction</Select.Item>
-					<Select.Item value="review">Review</Select.Item>
-					<Select.Item value="news">News</Select.Item>
+					<!-- The post's own category must stay selectable even when no other
+					     public post shares it, so it is folded into the option list. -->
+					{#each [...new Set( [...(categoriesQuery.data ?? []), ...(categoryInput ? [categoryInput] : [])] )] as c (c)}
+						<Select.Item value={c}>{c}</Select.Item>
+					{/each}
 				</Select.Content>
 			</Select.Root>
 		</div>

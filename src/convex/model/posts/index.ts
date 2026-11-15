@@ -32,6 +32,28 @@ export const listDistinctTags = async (ctx: QueryCtx): Promise<string[]> => {
 	return [...tags].sort();
 };
 
+/**
+ * Distinct categories across public posts, most-used first.
+ *
+ * `posts.category` is a free-form string, so the UI must never hardcode a list:
+ * a taxonomy baked into a Select goes stale the moment a new category is
+ * written. Ordered by count so the busiest category leads the filter.
+ */
+export const listDistinctCategories = async (ctx: QueryCtx): Promise<string[]> => {
+	const posts = await ctx.db
+		.query('posts')
+		.withIndex('visibility', (q) => q.eq('visibility', 'public'))
+		.collect();
+
+	const counts = new Map<string, number>();
+	for (const p of posts) {
+		const c = p.category?.trim();
+		if (c) counts.set(c, (counts.get(c) ?? 0) + 1);
+	}
+
+	return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([c]) => c);
+};
+
 /** Update a post's title, description, content, visibility, tags, category, and image. */
 export const updatePost = async (
 	ctx: MutationCtx,

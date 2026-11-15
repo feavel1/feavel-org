@@ -1,6 +1,8 @@
 <script lang="ts">
 	import * as Select from '#lib/ui/select';
 	import { X } from '@lucide/svelte';
+	import { useQuery } from 'convex-svelte';
+	import { api } from '#convex/_generated/api';
 
 	let {
 		filterCategory = $bindable(null as string | null),
@@ -13,6 +15,11 @@
 		tags?: string[];
 		totalPosts?: number;
 	} = $props();
+
+	// Categories come from the posts themselves. A hardcoded list here went stale
+	// the moment a new category was written, and silently filtered to nothing.
+	const categoriesQuery = useQuery(api.posts.queries.listCategories);
+	const categories = $derived(categoriesQuery.data ?? []);
 
 	let _filterCategory = $derived(filterCategory ?? undefined);
 	$effect(() => {
@@ -29,12 +36,13 @@
 				<span>{_filterCategory || 'All'}</span>
 			</Select.Trigger>
 			<Select.Content>
-				<Select.Item value={''}>All</Select.Item>
-				<Select.Item value="tutorial">Tutorial</Select.Item>
-				<Select.Item value="essay">Essay</Select.Item>
-				<Select.Item value="fiction">Fiction</Select.Item>
-				<Select.Item value="review">Review</Select.Item>
-				<Select.Item value="news">News</Select.Item>
+				<Select.Item value="">All</Select.Item>
+				<!-- The active filter stays selectable even if its category no longer
+				     has any public posts — otherwise the trigger shows a value the
+				     menu cannot display. -->
+				{#each [...new Set( [...categories, ...(_filterCategory ? [_filterCategory] : [])] )] as c (c)}
+					<Select.Item value={c}>{c}</Select.Item>
+				{/each}
 			</Select.Content>
 		</Select.Root>
 
