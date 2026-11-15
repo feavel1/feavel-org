@@ -65,6 +65,9 @@ export const tables = {
 	})
 		.index('accountId', ['accountId'])
 		.index('accountId_providerId', ['accountId', 'providerId'])
+		// Better Auth 1.7 reads this when a user sets, changes or resets a password;
+		// without it those operations scan the whole table.
+		.index('accountId_providerId_userId', ['accountId', 'providerId', 'userId'])
 		.index('providerId_userId', ['providerId', 'userId'])
 		.index('userId', ['userId']),
 	verification: defineTable({
@@ -80,7 +83,10 @@ export const tables = {
 		publicKey: v.string(),
 		privateKey: v.string(),
 		createdAt: v.number(),
-		expiresAt: v.optional(v.union(v.null(), v.number()))
+		expiresAt: v.optional(v.union(v.null(), v.number())),
+		// Better Auth 1.7 records the JWT signing algorithm alongside the key.
+		alg: v.optional(v.union(v.null(), v.string())),
+		crv: v.optional(v.union(v.null(), v.string()))
 	}),
 	organization: defineTable({
 		name: v.string(),

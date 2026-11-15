@@ -40,7 +40,7 @@ export const services: ServiceCard[] = [
 			'Full-stack SaaS applications, API integrations, rich-text platforms. SvelteKit, Convex, Tailwind CSS, Cloudflare Workers.',
 		scope: 'MVP to production-grade platform',
 		timeline: '2–6 weeks for MVP, ongoing for larger projects',
-		startingPrice: '$2,000'
+		startingPrice: 'Contact for price offer'
 	}
 ];
 

@@ -319,8 +319,9 @@
 		unlinkingAccountId = accountId;
 
 		// try {
+		// Better Auth 1.7 dropped `providerId` from `unlinkAccount`; the account id
+		// alone identifies the provider now.
 		const { error } = await authClient.unlinkAccount({
-			providerId: provider,
 			accountId
 		});
 		if (error) {
