@@ -8,6 +8,7 @@
 	import { toast } from 'svelte-sonner';
 	import { useConvexClient } from 'convex-svelte';
 	import { getAuthContext } from '#lib/auth/context.svelte';
+	import { m } from '#lib/paraglide/messages.js';
 	const { api } = getAuthContext();
 	const client = useConvexClient();
 
@@ -17,15 +18,15 @@
 	let message = $state('');
 	let sending = $state(false);
 
-	const serviceOptions = [
-		{ value: 'music', label: 'Music Production' },
-		{ value: 'translation', label: 'Translation' },
-		{ value: 'web', label: 'Web Development' }
-	] as const;
+	const serviceOptions = $derived([
+		{ value: 'music', label: m.svc_contact_opt_music() },
+		{ value: 'translation', label: m.svc_contact_opt_translation() },
+		{ value: 'web', label: m.svc_contact_opt_web() }
+	]);
 
 	async function handleSubmit() {
 		if (!name.trim() || !email.trim() || !message.trim()) {
-			toast.error('Please fill in all fields');
+			toast.error(m.svc_toast_required());
 			return;
 		}
 		sending = true;
@@ -36,12 +37,12 @@
 				category,
 				message: message.trim()
 			});
-			toast.success("Message sent! I'll get back to you soon.");
+			toast.success(m.svc_toast_sent());
 			name = '';
 			email = '';
 			message = '';
 		} catch (err) {
-			const msg = err instanceof Error ? err.message : 'Failed to send message';
+			const msg = err instanceof Error ? err.message : m.svc_toast_failed();
 			toast.error(msg);
 		} finally {
 			sending = false;
@@ -51,13 +52,12 @@
 
 <div class="contact-layout">
 	<div class="contact-statement">
-		<h2 class="contact-heading">Let's make something.</h2>
+		<h2 class="contact-heading">{m.svc_contact_heading()}</h2>
 		<p class="contact-sub">
-			Every project starts with a message. Tell me what you need — music, translation, or a web
-			application — and I'll tell you honestly what it takes.
+			{m.svc_contact_sub()}
 		</p>
 		<div class="contact-alt">
-			<span class="contact-alt-label">Prefer email?</span>
+			<span class="contact-alt-label">{m.svc_contact_alt_label()}</span>
 			<a href="mailto:hello@feavel.com" class="contact-alt-link">hello@feavel.com</a>
 		</div>
 	</div>
@@ -72,17 +72,17 @@
 		>
 			<div class="contact-form-row">
 				<div class="contact-form-field">
-					<Label for="contact-name" class="field-label">Name</Label>
+					<Label for="contact-name" class="field-label">{m.svc_contact_name()}</Label>
 					<Input
 						id="contact-name"
 						type="text"
-						placeholder="Your name"
+						placeholder={m.svc_contact_name_ph()}
 						bind:value={name}
 						class="field-input"
 					/>
 				</div>
 				<div class="contact-form-field">
-					<Label for="contact-email" class="field-label">Email</Label>
+					<Label for="contact-email" class="field-label">{m.svc_contact_email()}</Label>
 					<Input
 						id="contact-email"
 						type="email"
@@ -94,10 +94,11 @@
 			</div>
 
 			<div class="contact-form-field">
-				<Label for="contact-category" class="field-label">What do you need?</Label>
+				<Label for="contact-category" class="field-label">{m.svc_contact_need()}</Label>
 				<Select.Root type="single" bind:value={category}>
 					<Select.Trigger id="contact-category" class="field-select w-full">
-						{serviceOptions.find((s) => s.value === category)?.label ?? 'Select a service'}
+						{serviceOptions.find((s) => s.value === category)?.label ??
+							m.svc_contact_select_service()}
 					</Select.Trigger>
 					<Select.Content>
 						{#each serviceOptions as s (s.value)}
@@ -108,10 +109,10 @@
 			</div>
 
 			<div class="contact-form-field">
-				<Label for="contact-message" class="field-label">Message</Label>
+				<Label for="contact-message" class="field-label">{m.svc_contact_message()}</Label>
 				<Textarea
 					id="contact-message"
-					placeholder="Describe your project, budget, and timeline..."
+					placeholder={m.svc_contact_message_ph()}
 					class="field-textarea min-h-[120px]"
 					bind:value={message}
 				/>
@@ -120,7 +121,7 @@
 			<div class="contact-form-actions">
 				<Button type="submit" disabled={sending} class="contact-submit-btn">
 					<Send class="size-3.5" />
-					{sending ? 'Sending...' : 'Send message'}
+					{sending ? m.svc_contact_sending() : m.svc_contact_send()}
 				</Button>
 			</div>
 		</form>

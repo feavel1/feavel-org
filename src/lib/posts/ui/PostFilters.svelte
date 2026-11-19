@@ -3,6 +3,8 @@
 	import { X } from '@lucide/svelte';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '#convex/_generated/api';
+	import { postCount } from './posts-i18n';
+	import { m } from '#lib/paraglide/messages.js';
 
 	let {
 		filterCategory = $bindable(null as string | null),
@@ -33,10 +35,10 @@
 	<div class="filters-row">
 		<Select.Root type="single" bind:value={_filterCategory}>
 			<Select.Trigger class="filter-select">
-				<span>{_filterCategory || 'All'}</span>
+				<span>{_filterCategory || m.posts_filter_all()}</span>
 			</Select.Trigger>
 			<Select.Content>
-				<Select.Item value="">All</Select.Item>
+				<Select.Item value="">{m.posts_filter_all()}</Select.Item>
 				<!-- The active filter stays selectable even if its category no longer
 				     has any public posts — otherwise the trigger shows a value the
 				     menu cannot display. -->
@@ -65,7 +67,7 @@
 		{/if}
 
 		{#if hasActiveFilters}
-			<span class="filter-count">{totalPosts} post{totalPosts !== 1 ? 's' : ''}</span>
+			<span class="filter-count">{postCount(totalPosts)}</span>
 		{/if}
 	</div>
 </div>

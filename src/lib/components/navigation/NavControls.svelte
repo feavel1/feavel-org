@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as DropdownMenu from '#lib/ui/dropdown-menu';
 	import { locales, setLocale, getLocale } from '#lib/paraglide/runtime';
+	import { m } from '#lib/paraglide/messages.js';
 	import { mode, setMode, resetMode } from 'mode-watcher';
 	import { Sun, Moon, Monitor, Check, Languages } from '@lucide/svelte';
 
@@ -12,11 +13,13 @@
 		cn: '中文'
 	};
 
-	const themeModes: { label: string; value: ThemeMode; icon: typeof Sun }[] = [
-		{ label: 'Light', value: 'light', icon: Sun },
-		{ label: 'Dark', value: 'dark', icon: Moon },
-		{ label: 'System', value: 'system', icon: Monitor }
-	];
+	// Resolved per render, so the labels follow the active locale rather than a
+	// frozen module-level constant.
+	const themeModes = $derived<{ label: string; value: ThemeMode; icon: typeof Sun }[]>([
+		{ label: m.nav_theme_light(), value: 'light', icon: Sun },
+		{ label: m.nav_theme_dark(), value: 'dark', icon: Moon },
+		{ label: m.nav_theme_system(), value: 'system', icon: Monitor }
+	]);
 
 	const currentMode = $derived<ThemeMode>((mode.current as ThemeMode) ?? 'system');
 	const currentLocale = $derived(getLocale());
@@ -36,7 +39,7 @@
 
 <!-- Theme -->
 <DropdownMenu.Root>
-	<DropdownMenu.Trigger class="nav-util nav-util-icon" aria-label="Change theme">
+	<DropdownMenu.Trigger class="nav-util nav-util-icon" aria-label={m.nav_change_theme()}>
 		{#if currentMode === 'light'}
 			<Sun class="size-3.5" />
 		{:else if currentMode === 'dark'}
@@ -47,7 +50,7 @@
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content align="end" class="nav-util-menu">
 		<DropdownMenu.Group>
-			<DropdownMenu.GroupHeading>Theme</DropdownMenu.GroupHeading>
+			<DropdownMenu.GroupHeading>{m.nav_theme_heading()}</DropdownMenu.GroupHeading>
 			{#each themeModes as t (t.value)}
 				<DropdownMenu.Item
 					class="nav-util-item"
@@ -67,12 +70,12 @@
 
 <!-- Language -->
 <DropdownMenu.Root>
-	<DropdownMenu.Trigger class="nav-util nav-util-icon" aria-label="Change language">
+	<DropdownMenu.Trigger class="nav-util nav-util-icon" aria-label={m.nav_change_language()}>
 		<Languages class="size-3.5" />
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content align="end" class="nav-util-menu">
 		<DropdownMenu.Group>
-			<DropdownMenu.GroupHeading>Language</DropdownMenu.GroupHeading>
+			<DropdownMenu.GroupHeading>{m.nav_language_heading()}</DropdownMenu.GroupHeading>
 			{#each locales as locale (locale)}
 				<DropdownMenu.Item
 					class="nav-util-item"

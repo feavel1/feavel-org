@@ -3,16 +3,24 @@ import { x402ResourceServer, HTTPFacilitatorClient } from '@x402/core/server';
 import { ExactSvmScheme } from '@x402/svm/exact/server';
 import { encodePaymentRequiredHeader } from '@x402/core/http';
 import { TREASURY_ADDRESS, FACILITATOR_URL } from '$app/env/private';
-import { PUBLIC_X402_NETWORK } from '$app/env/public';
+import { PUBLIC_X402_NETWORK, PUBLIC_X402_TOKEN_MINT } from '$app/env/public';
 
 if (!TREASURY_ADDRESS || !FACILITATOR_URL)
 	throw new Error('Missing TREASURY_ADDRESS or FACILITATOR_URL');
 
 const facilitatorClient = new HTTPFacilitatorClient({ url: FACILITATOR_URL });
-const resourceServer = new x402ResourceServer(facilitatorClient).register(
-	'solana:*',
-	new ExactSvmScheme()
-);
+// ponytail: pin the mint from env, same as the post route. Without this the package's
+// default money parser decides the asset and PUBLIC_X402_TOKEN_MINT is silently ignored —
+// which works today only because `$1` happens to resolve to that network's USDC.
+const svmScheme = new ExactSvmScheme();
+if (PUBLIC_X402_TOKEN_MINT) {
+	svmScheme.registerMoneyParser(async (amount) => ({
+		asset: PUBLIC_X402_TOKEN_MINT,
+		// 6 decimals, as USDC. Change the exponent if you ever pin a non-USDC mint.
+		amount: String(Math.round(Number(amount) * 1_000_000))
+	}));
+}
+const resourceServer = new x402ResourceServer(facilitatorClient).register('solana:*', svmScheme);
 await resourceServer.initialize();
 
 const paymentReq = (

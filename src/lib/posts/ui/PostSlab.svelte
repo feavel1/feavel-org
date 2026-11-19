@@ -18,6 +18,8 @@
 	import { page } from '$app/state';
 	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
+	import { timeAgo } from './posts-i18n';
+	import { m } from '#lib/paraglide/messages.js';
 
 	let {
 		post,
@@ -82,18 +84,18 @@
 			// an already-unlocked post.
 			if (res.status !== 204) {
 				if (res.status === 402) {
-					toast.success('Payment confirmed — unlocking…');
+					toast.success(m.posts_toast_confirmed_unlocking());
 				} else {
 					const data = (await res.json()) as { content?: unknown };
 					paidContent = data.content ?? data;
-					toast.success('Payment confirmed — post unlocked');
+					toast.success(m.posts_toast_confirmed_unlocked());
 				}
 			}
 		} catch (err) {
 			// The store already sets $x402.error; the toast covers the case where the
 			// paywall has scrolled out of view (e.g. wallet popup blocked the click).
-			const msg = (err as Error)?.message ?? 'Payment failed';
-			toast.error(msg.includes('reject') ? 'Payment cancelled in wallet' : msg);
+			const msg = (err as Error)?.message ?? m.posts_toast_payment_failed();
+			toast.error(msg.includes('reject') ? m.posts_toast_payment_cancelled() : msg);
 		} finally {
 			paying = false;
 		}
@@ -113,15 +115,6 @@
 			/* auth required */
 		}
 	}
-
-	function timeAgo(ts: number): string {
-		const sec = Math.floor((Date.now() - ts) / 1000);
-		if (sec < 60) return 'just now';
-		if (sec < 3600) return `${Math.floor(sec / 60)}m`;
-		if (sec < 86400) return `${Math.floor(sec / 3600)}h`;
-		if (sec < 604800) return `${Math.floor(sec / 86400)}d`;
-		return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-	}
 </script>
 
 <div class="slab" class:slab--open={isOpen}>
@@ -133,7 +126,7 @@
 		<div class="slab-meta">
 			<span class="slab-date">{timeAgo(post._creationTime)}</span>
 			{#if post.visibility === 'members'}<Badge variant="secondary" class="text-[10px]"
-					>Members</Badge
+					>{m.posts_members_badge()}</Badge
 				>{/if}
 		</div>
 	</button>
@@ -155,26 +148,31 @@
 			{:else if postQuery.data?.ask && !paidContent}
 				<div class="paywall">
 					<div class="paywall-icon"><Lock size={24} /></div>
-					<h3 class="paywall-heading">Pay to read</h3>
-					<p class="paywall-text">This post costs {postQuery.data.ask.amount} USDC</p>
+					<h3 class="paywall-heading">{m.posts_paywall_heading()}</h3>
+					<p class="paywall-text">
+						{m.posts_paywall_cost({ amount: postQuery.data.ask.amount })}
+					</p>
 					{#if !signedIn}
 						<p class="paywall-hint">
-							Sign in first — purchases are saved to your account, so the post stays unlocked after
-							you refresh.
+							{m.posts_paywall_signin_hint()}
 						</p>
-						<a href={signInHref} class="paywall-signin">Sign in to unlock</a>
+						<a href={signInHref} class="paywall-signin">{m.posts_paywall_signin_cta()}</a>
 					{:else}
 						<WalletButton />
 						<Button onclick={handlePay} disabled={paying || !$wallet.connected} class="paywall-btn">
-							{paying ? 'Processing...' : `Pay ${postQuery.data.ask.amount} USDC`}
+							{paying
+								? m.posts_paywall_processing()
+								: m.posts_paywall_pay({ amount: postQuery.data.ask.amount })}
 						</Button>
 						{#if !$wallet.connected}
-							<p class="paywall-hint">Connect a Solana wallet to pay.</p>
+							<p class="paywall-hint">{m.posts_paywall_connect_wallet()}</p>
 						{:else}
 							<p class="paywall-hint">
-								Pay with {$walletAddress
-									? `${$walletAddress.slice(0, 4)}…${$walletAddress.slice(-4)}`
-									: 'your wallet'}. Keep the page open until it confirms.
+								{m.posts_paywall_wallet_hint({
+									wallet: $walletAddress
+										? `${$walletAddress.slice(0, 4)}…${$walletAddress.slice(-4)}`
+										: m.posts_paywall_wallet_fallback()
+								})}
 							</p>
 						{/if}
 					{/if}
@@ -186,11 +184,12 @@
 				</div>
 				<div class="slab-rule" aria-hidden="true"><Separator /></div>
 				<div class="comments">
-					<h4 class="comments-label">Comments</h4>
+					<h4 class="comments-label">{m.posts_comments_label()}</h4>
 					<div class="comment-input-row">
 						<input
 							type="text"
-							placeholder="Write a comment..."
+							placeholder={m.posts_comment_placeholder()}
+							aria-label={m.posts_comment_placeholder()}
 							bind:value={newComment}
 							class="comment-input"
 							onkeydown={(e) =>
@@ -210,7 +209,7 @@
 						<Empty.Root>
 							<Empty.Media variant="icon"><MessageCircle size={16} /></Empty.Media>
 							<Empty.Header>
-								<Empty.Title>No comments yet</Empty.Title>
+								<Empty.Title>{m.posts_comments_empty()}</Empty.Title>
 							</Empty.Header>
 						</Empty.Root>
 					{:else}
@@ -256,7 +255,7 @@
 					{/if}
 				</div>
 			{:else}
-				<p class="slab-error">Post not found</p>
+				<p class="slab-error">{m.posts_not_found()}</p>
 			{/if}
 		</div>
 	{/if}

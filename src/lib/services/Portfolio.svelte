@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PortfolioEntry } from '#lib/services/types';
 	import { resolve } from '$app/paths';
+	import { m } from '#lib/paraglide/messages.js';
 
 	let { entries = [] as PortfolioEntry[] }: { entries?: PortfolioEntry[] } = $props();
 
@@ -22,7 +23,7 @@
 </script>
 
 {#if entries.length === 0}
-	<p class="empty-text reveal-item" {@attach reveal(0)}>Nothing to show yet.</p>
+	<p class="empty-text reveal-item" {@attach reveal(0)}>{m.svc_pf_empty()}</p>
 {:else}
 	<div class="track-reel">
 		{#each entries as entry, i (entry.id)}

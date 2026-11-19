@@ -3,18 +3,22 @@
 	import RevealItem from '#lib/components/RevealItem.svelte';
 	import Portfolio from '#lib/services/Portfolio.svelte';
 	import ContactForm from '#lib/services/ContactForm.svelte';
-	import { services, portfolioEntries } from '#lib/services/data';
+	import { getServices, getPortfolioEntries } from '#lib/services/catalog-i18n';
+	import { m } from '#lib/paraglide/messages.js';
+
+	// Resolved per render: the copy follows the active locale.
+	const services = $derived(getServices());
+	const portfolioEntries = $derived(getPortfolioEntries());
 </script>
 
-<svelte:head><title>Services — Feavel</title></svelte:head>
+<svelte:head><title>{m.svc_meta_title()}</title></svelte:head>
 
 <!-- HERO -->
 <section class="hero">
-	<RevealItem delay={0}><h1 class="hero-heading">What I offer</h1></RevealItem>
+	<RevealItem delay={0}><h1 class="hero-heading">{m.wild_super_monkey_express()}</h1></RevealItem>
 	<RevealItem delay={150}>
 		<p class="hero-desc">
-			A producer who ships code. A developer fluent in three languages. A translator who hears the
-			music behind the words.
+			{m.mellow_awful_kudu_boost()}
 		</p>
 	</RevealItem>
 	<RevealItem delay={250}><div class="hero-rule" aria-hidden="true"></div></RevealItem>
@@ -22,30 +26,30 @@
 
 <!-- SERVICES -->
 <section class="services-list">
-	{#each services as s, i (s.category)}
+	{#each services as s, i (s.id)}
 		<RevealItem delay={i * 80}>
-			<div id="session-{s.category}" class="slab">
+			<div id="session-{s.id}" class="slab">
 				<span class="slab-num">{String(i + 1).padStart(2, '0')}</span>
 				<div class="slab-body">
 					<h2 class="slab-title">{s.title}</h2>
 					<p class="slab-desc">{s.deliverable}</p>
 					<div class="slab-meta">
 						<div class="slab-meta-item">
-							<span class="slab-meta-label">Scope</span><span class="slab-meta-value"
+							<span class="slab-meta-label">{m.svc_slab_scope()}</span><span class="slab-meta-value"
 								>{s.scope}</span
 							>
 						</div>
 						<div class="slab-meta-item">
-							<span class="slab-meta-label">Timeline</span><span class="slab-meta-value"
-								>{s.timeline}</span
+							<span class="slab-meta-label">{m.svc_slab_timeline()}</span><span
+								class="slab-meta-value">{s.timeline}</span
 							>
 						</div>
 					</div>
 				</div>
 				<div class="slab-price">
-					<span class="slab-price-from">Starting at</span>
+					<span class="slab-price-from">{m.svc_slab_starting_at()}</span>
 					<span class="slab-price-amount">{s.startingPrice}</span>
-					<a href="#contact" class="slab-cta">Book a session →</a>
+					<a href="#contact" class="slab-cta">{m.svc_slab_cta()} →</a>
 				</div>
 			</div>
 		</RevealItem>
@@ -54,45 +58,39 @@
 
 <!-- PORTFOLIO -->
 <section class="section" id="portfolio">
-	<RevealItem><SectionHead label="Selected work" /></RevealItem>
+	<RevealItem><SectionHead label={m.svc_section_work()} /></RevealItem>
 	<Portfolio entries={portfolioEntries} />
 </section>
 
 <!-- ABOUT -->
 <section class="section">
-	<RevealItem><SectionHead label="About" /></RevealItem>
+	<RevealItem><SectionHead label={m.svc_section_about()} /></RevealItem>
 	<RevealItem delay={100}>
 		<blockquote class="about-quote">
-			Every project starts with a conversation — tell me what you need and I'll give you a straight
-			answer.
+			{m.svc_about_quote()}
 		</blockquote>
 	</RevealItem>
 	<RevealItem delay={200}>
 		<div class="about-bio">
-			<p>
-				I'm a multidisciplinary creator working across music production, translation, and web
-				development. I've been producing music for over a decade, translating technical and creative
-				content since 2019, and building web applications since 2020.
-			</p>
-			<p>
-				Based in Eastern Europe (UTC+3). I work with clients remotely in English, Russian, and
-				Mandarin.
-			</p>
+			<p>{m.svc_about_bio_1()}</p>
+			<p>{m.svc_about_bio_2()}</p>
 		</div>
 	</RevealItem>
 	<RevealItem delay={300}>
 		<div class="about-facts">
 			<div class="about-fact">
 				<span class="about-fact-num">10+</span><span class="about-fact-label"
-					>Years producing music</span
+					>{m.svc_fact_years_music()}</span
 				>
 			</div>
 			<div class="about-fact">
-				<span class="about-fact-num">3</span><span class="about-fact-label">Working languages</span>
+				<span class="about-fact-num">3</span><span class="about-fact-label"
+					>{m.svc_fact_languages()}</span
+				>
 			</div>
 			<div class="about-fact">
 				<span class="about-fact-num">5+</span><span class="about-fact-label"
-					>Years building for the web</span
+					>{m.svc_fact_years_web()}</span
 				>
 			</div>
 		</div>
@@ -103,7 +101,7 @@
 <!-- id="contact" is the target of the in-page CTAs (.slab-cta, /#contact).
      Without it the browser finds no anchor and the click silently does nothing. -->
 <section class="section" id="contact">
-	<RevealItem><SectionHead label="Get in touch" /></RevealItem>
+	<RevealItem><SectionHead label={m.fierce_roo_ramp()} /></RevealItem>
 	<ContactForm />
 </section>
 

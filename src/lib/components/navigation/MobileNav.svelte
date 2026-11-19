@@ -5,15 +5,17 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { navLinks, type ResolvedHref } from './nav-links.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	let open = $state(false);
 
 	// Secondary destinations — not in the main row, but reachable in one tap.
-	const quickLinks = [
-		{ href: resolve('/services#portfolio'), label: 'Portfolio' },
-		{ href: resolve('/services#contact'), label: 'Contact' },
-		{ href: resolve('/posts/editor'), label: 'Post Editor' }
-	];
+	// `href` is a resolved route plus a hash, which widens the type to string.
+	const quickLinks = $derived<{ href: string; label: string }[]>([
+		{ href: `${resolve('/services')}#portfolio`, label: m.nav_portfolio() },
+		{ href: `${resolve('/services')}#contact`, label: m.nav_contact() },
+		{ href: resolve('/posts/editor'), label: m.nav_post_editor() }
+	]);
 
 	function isActive(href: string): boolean {
 		const current = page.url.pathname;
@@ -26,7 +28,7 @@
 	<button
 		type="button"
 		class="nav-util nav-util-icon md:hidden"
-		aria-label="Open navigation"
+		aria-label={m.nav_open_navigation()}
 		onclick={() => (open = true)}
 	>
 		<MenuIcon size={18} />
@@ -37,7 +39,7 @@
 	<Drawer.Content>
 		<div class="mx-auto w-full max-w-sm">
 			<Drawer.Header>
-				<Drawer.Title class="sr-only">Navigation</Drawer.Title>
+				<Drawer.Title class="sr-only">{m.nav_navigation()}</Drawer.Title>
 			</Drawer.Header>
 
 			<div class="flex flex-col gap-5 px-4 pb-8">
@@ -85,16 +87,17 @@
 				<div class="flex flex-col gap-1">
 					<span
 						class="px-2 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase"
-						>Quick links</span
+						>{m.nav_quick_links()}</span
 					>
 					{#each quickLinks as link (link.href)}
+						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolved route + hash -->
 						<a href={link.href} class="quick-link" onclick={() => (open = false)}>{link.label}</a>
 					{/each}
 				</div>
 			</div>
 
 			<Drawer.Footer>
-				<Drawer.Close class="mobile-drawer-close">Close</Drawer.Close>
+				<Drawer.Close class="mobile-drawer-close">{m.nav_close()}</Drawer.Close>
 			</Drawer.Footer>
 		</div>
 	</Drawer.Content>

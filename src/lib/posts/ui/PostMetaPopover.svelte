@@ -40,12 +40,31 @@
 	let categoryInput = $state('');
 	let tagComboOpen = $state(false);
 	let tagQuery = $state('');
+	let catComboOpen = $state(false);
+	let catQuery = $state('');
 	let showDeleteDialog = $state(false);
 
 	const filteredTags = $derived(
 		(allTagsQuery.data ?? []).filter((t) =>
 			tagQuery ? t.toLowerCase().includes(tagQuery.toLowerCase()) : true
 		)
+	);
+
+	// Categories are free-form strings on the record, so the picker is driven by
+	// what has already been written rather than a taxonomy baked into the source.
+	const categoryOptions = $derived([
+		...new Set([
+			...(categoriesQuery.data ?? []),
+			// The post's own category must stay selectable even when no other
+			// public post shares it.
+			...(categoryInput ? [categoryInput] : [])
+		])
+	]);
+
+	const filteredCategories = $derived(
+		catQuery.trim()
+			? categoryOptions.filter((c) => c.toLowerCase().includes(catQuery.trim().toLowerCase()))
+			: categoryOptions
 	);
 
 	export function loadData(d: NonNullable<ReturnType<typeof useQuery>['data']>) {
@@ -73,6 +92,13 @@
 		onDirty();
 	}
 
+	function setCategory(c: string) {
+		categoryInput = c.trim();
+		catQuery = '';
+		catComboOpen = false;
+		onDirty();
+	}
+
 	export async function doSave(ed: NonNullable<typeof editor>) {
 		if (!titleInput.trim() || !postId) return;
 		try {
@@ -97,7 +123,9 @@
 					resourceType: 'post',
 					resourceId: postId,
 					amount: p,
-					currency: 'USD'
+					// ponytail: what settles, not a fiat unit. Ticker-level on purpose — the
+					// exact mint lives in PUBLIC_X402_TOKEN_MINT and `asks` is never read for it.
+					currency: 'USDC'
 				});
 			} else if (askQuery.data) {
 				await client.mutation(api.payments.mutations.deleteAsk, {
@@ -133,7 +161,7 @@
 		<Edit size={14} />
 		<span>Edit meta</span>
 	</Popover.Trigger>
-	<Popover.Content align="start" side="top" class="meta-popover">
+	<Popover.Content align="start" side="top" class="meta-popover gap-2 p-3">
 		<div class="field">
 			<label class="field-label" for="post-title-{postId}">Title</label>
 			<input
@@ -277,19 +305,63 @@
 
 		<div class="field">
 			<span class="field-label">Category</span>
-			<Select.Root type="single" bind:value={categoryInput} onValueChange={onDirty}>
-				<Select.Trigger id="post-cat-{postId}" class="field-select w-full">
-					<span>{categoryInput || 'None'}</span>
-				</Select.Trigger>
-				<Select.Content>
-					<Select.Item value="">None</Select.Item>
-					<!-- The post's own category must stay selectable even when no other
-					     public post shares it, so it is folded into the option list. -->
-					{#each [...new Set( [...(categoriesQuery.data ?? []), ...(categoryInput ? [categoryInput] : [])] )] as c (c)}
-						<Select.Item value={c}>{c}</Select.Item>
-					{/each}
-				</Select.Content>
-			</Select.Root>
+			<Popover.Root bind:open={catComboOpen}>
+				<Popover.Trigger class="w-full">
+					{#snippet child({ props })}
+						<button
+							class="field-select w-full"
+							{...props}
+							role="combobox"
+							aria-expanded={catComboOpen}
+						>
+							<span class={categoryInput ? '' : 'opacity-30'}>
+								{categoryInput || 'Add category...'}
+							</span>
+							<ChevronsUpDownIcon class="ml-auto size-3 opacity-30" />
+						</button>
+					{/snippet}
+				</Popover.Trigger>
+				<Popover.Content class="w-full p-0">
+					<Command.Root>
+						<Command.Input
+							placeholder="Search or add category..."
+							bind:value={catQuery}
+							onkeydown={(e) => {
+								if (e.key === 'Enter' && catQuery.trim()) {
+									e.preventDefault();
+									setCategory(catQuery);
+								}
+							}}
+						/>
+						<Command.List>
+							<Command.Empty>
+								<button
+									class="w-full px-2 py-1 text-left text-sm hover:bg-muted"
+									onclick={() => setCategory(catQuery)}
+								>
+									Add &ldquo;{catQuery}&rdquo;
+								</button>
+							</Command.Empty>
+							<Command.Item value="none" onSelect={() => setCategory('')}>
+								<CheckIcon class="me-2 size-4 {categoryInput ? 'text-transparent' : ''}" />
+								<span class="opacity-50">None</span>
+							</Command.Item>
+							{#if filteredCategories.length > 0}
+								<Command.Group>
+									{#each filteredCategories as c (c)}
+										<Command.Item value={c} onSelect={() => setCategory(c)}>
+											<CheckIcon
+												class="me-2 size-4 {categoryInput === c ? '' : 'text-transparent'}"
+											/>
+											{c}
+										</Command.Item>
+									{/each}
+								</Command.Group>
+							{/if}
+						</Command.List>
+					</Command.Root>
+				</Popover.Content>
+			</Popover.Root>
 		</div>
 
 		<div class="meta-rule" aria-hidden="true"></div>
@@ -412,7 +484,6 @@
 		overflow-y: auto;
 		border: 1px solid var(--border);
 		background: var(--background);
-		padding: 1rem;
 		width: 18rem;
 	}
 	.tag-list {

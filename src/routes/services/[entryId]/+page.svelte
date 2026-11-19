@@ -1,24 +1,27 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { portfolioEntries } from '#lib/services/data';
+	import { getPortfolioEntries, getCategoryLabel } from '#lib/services/catalog-i18n';
 	import { EdraEditor } from '#lib/edra/shadcn/index.js';
 	import { Skeleton } from '#lib/ui/skeleton';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '#convex/_generated/api';
 	import type { Id } from '#convex/_generated/dataModel';
+	import { m } from '#lib/paraglide/messages.js';
 
-	const entry = $derived(portfolioEntries.find((e) => e.id === page.params.entryId));
+	// Entries are resolved per render, so the copy follows the active locale.
+	const entries = $derived(getPortfolioEntries());
+	const entry = $derived(entries.find((e) => e.id === page.params.entryId));
 	const post = useQuery(api.posts.queries.getPost, () =>
 		entry?.postId ? { postId: entry.postId as Id<'posts'> } : 'skip'
 	);
 
 	// The catalogue number is positional, so it has to be found, not stored.
-	const index = $derived(portfolioEntries.findIndex((e) => e.id === page.params.entryId));
+	const index = $derived(entries.findIndex((e) => e.id === page.params.entryId));
 
-	// Category is a free-form string on the record. Show it as-is; there is no
-	// fixed taxonomy to map hieroglyphs onto any more.
-	const category = $derived(entry?.category ?? '');
+	// Category is a free-form string on the record; the known slugs are localised,
+	// anything else falls through unchanged.
+	const category = $derived(getCategoryLabel(entry?.category ?? ''));
 
 	// resolve() only yields a route; the hash is appended, which the eslint rule
 	// cannot see through, so each template literal is annotated at its use site.
@@ -26,14 +29,17 @@
 	const contactHref = `${resolve('/services')}#contact`;
 </script>
 
-<svelte:head><title>{entry ? `${entry.title} — Feavel` : 'Not found — Feavel'}</title></svelte:head>
+<svelte:head
+	><title>{entry ? `${entry.title} — Feavel` : m.svc_entry_meta_missing()}</title></svelte:head
+>
 
 {#if entry}
 	<article class="work">
 		<header class="work-head">
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolved route + hash -->
 			<a href={backHref} class="work-back">
-				<span aria-hidden="true">←</span> All work
+				<span aria-hidden="true">←</span>
+				{m.svc_entry_back()}
 			</a>
 
 			<div class="work-meta">
@@ -65,28 +71,28 @@
 				<!-- Empty is a state, not an error: the catalogue entry exists but its
 				     write-up does not. Say so plainly and keep the way forward open. -->
 				<div class="work-empty">
-					<p class="work-empty-line">The write-up for this one isn't published yet.</p>
+					<p class="work-empty-line">{m.svc_entry_unpublished()}</p>
 					<p class="work-empty-sub">{entry.description}</p>
 					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-					<a href={contactHref} class="work-cta">Ask me about it →</a>
+					<a href={contactHref} class="work-cta">{m.svc_entry_ask()} →</a>
 				</div>
 			{/if}
 		</div>
 
 		<footer class="work-foot">
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-			<a href={contactHref} class="work-cta">Start a project like this →</a>
+			<a href={contactHref} class="work-cta">{m.svc_entry_start()} →</a>
 		</footer>
 	</article>
 {:else}
 	<section class="work-missing">
 		<p class="work-meta"><span class="work-num">00</span></p>
-		<h1 class="work-title">That work doesn't exist.</h1>
+		<h1 class="work-title">{m.svc_entry_missing_title()}</h1>
 		<p class="work-tagline">
-			The link is stale or the piece was renamed. Everything still in the catalogue is listed below.
+			{m.svc_entry_missing_desc()}
 		</p>
 		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-		<a href={backHref} class="work-cta">See all work →</a>
+		<a href={backHref} class="work-cta">{m.svc_entry_missing_cta()} →</a>
 	</section>
 {/if}
 

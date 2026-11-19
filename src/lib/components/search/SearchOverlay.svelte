@@ -13,6 +13,7 @@
 		LoaderCircle
 	} from '@lucide/svelte';
 	import { searchOverlay } from '#lib/components/navigation/controls.svelte.js';
+	import { m } from '#lib/paraglide/messages.js';
 	import { onDestroy } from 'svelte';
 
 	let open = $derived(searchOverlay.open);
@@ -33,13 +34,15 @@
 	let searchError = $state(false);
 	let q = $derived(searchQuery.toLowerCase());
 
-	const navItems: { label: string; href: string; icon: typeof Home }[] = [
-		{ label: 'Home', href: resolve('/'), icon: Home },
-		{ label: 'Browse Posts', href: resolve('/posts'), icon: FileText },
-		{ label: 'Post Editor', href: resolve('/posts/editor'), icon: PenSquare },
-		{ label: 'Games', href: resolve('/games'), icon: Gamepad2 },
+	// Labels are resolved per render so the palette filters in the reader's own
+	// language — filtering the raw message would search a key string.
+	const navItems = $derived<{ label: string; href: string; icon: typeof Home }[]>([
+		{ label: m.nav_home(), href: resolve('/'), icon: Home },
+		{ label: m.nav_browse_posts(), href: resolve('/posts'), icon: FileText },
+		{ label: m.nav_post_editor(), href: resolve('/posts/editor'), icon: PenSquare },
+		{ label: m.thin_koala_dock(), href: resolve('/games'), icon: Gamepad2 },
 		{ label: 'Chess', href: resolve('/games/chess'), icon: Swords }
-	];
+	]);
 
 	let filteredNav = $derived(
 		!q ? navItems : navItems.filter((i) => i.label.toLowerCase().includes(q))
@@ -61,7 +64,8 @@
 			try {
 				const res = await client.action(api.rag.searchPosts, { query: val });
 				searchResults = res.results ?? [];
-			} catch {
+			} catch (err) {
+				console.error('[search] searchPosts failed', err);
 				searchResults = [];
 				searchError = true;
 			} finally {
@@ -84,23 +88,23 @@
 	<div class="cmd-main" role="presentation">
 		<Command.Input
 			bind:value={inputValue}
-			placeholder="Search posts…  ⌘K"
+			placeholder={m.posts_search_placeholder()}
 			oninput={(e) => onSearchInput((e.target as HTMLInputElement).value)}
 		/>
 		<Command.List>
 			{#if searching}
 				<div class="cmd-searching">
 					<LoaderCircle class="size-3 animate-spin" />
-					<span>Searching...</span>
+					<span>{m.posts_search_searching()}</span>
 				</div>
 			{/if}
 
 			{#if searchQuery && searchResults.length > 0}
-				<Command.Group heading="Search Results">
+				<Command.Group heading={m.posts_search_group()}>
 					{#each searchResults as r (r._id)}
 						<Command.LinkItem href={`/posts?postId=${r._id}`}>
 							<Search />
-							<span>{r.title || '(untitled)'}</span>
+							<span>{r.title || m.posts_search_untitled()}</span>
 						</Command.LinkItem>
 					{/each}
 				</Command.Group>
@@ -108,15 +112,15 @@
 			{/if}
 
 			{#if searchQuery && !searching && searchResults.length === 0 && !searchError}
-				<div class="cmd-empty">No posts found for "{searchQuery}"</div>
+				<div class="cmd-empty">{m.posts_search_empty({ query: searchQuery })}</div>
 			{/if}
 
 			{#if searchError}
-				<div class="cmd-empty">Search unavailable — try again</div>
+				<div class="cmd-empty">{m.posts_search_unavailable()}</div>
 			{/if}
 
 			{#if filteredNav.length > 0}
-				<Command.Group heading="Navigate">
+				<Command.Group heading={m.posts_search_navigate()}>
 					{#each filteredNav as n (n.label)}
 						<Command.LinkItem href={n.href}>
 							<n.icon />
@@ -125,7 +129,7 @@
 					{/each}
 				</Command.Group>
 			{:else if searchQuery && !searching}
-				<div class="cmd-empty">No matches</div>
+				<div class="cmd-empty">{m.posts_search_no_matches()}</div>
 			{/if}
 		</Command.List>
 	</div>
