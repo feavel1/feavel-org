@@ -10,6 +10,7 @@ A personal hub: blog, portfolio, games and audio player in one app — with real
 - **Organizations** — users belong to organizations, invite members, switch active org.
 - **Admin dashboard** — `/admin`. List and search users and organizations, edit profiles, change roles, ban, delete, set passwords, sign out everywhere, impersonate users. Server-enforced: every admin action re-checks permissions on the backend.
 - **Blog** — write posts in a rich text editor (TipTap) with markdown, code blocks, math, tables and images. Filter and browse posts.
+- **Rag search** — Search symanticly through posts using text embed ai model.
 - **Portfolio / services** — project showcase and a contact form that stores inquiries.
 - **Games** — chess and tic-tac-toe.
 - **Audio player** — play local audio with a waveform visualizer.

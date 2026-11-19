@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
-		"build": "svelte-kit sync && wrangler types --check && vite build",
+		"build": "svelte-kit sync && wrangler types && vite build",
 		"preview": "wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "rm -rf .svelte-kit && wrangler types && svelte-kit sync && paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide --emit-ts-declarations && svelte-check --tsconfig ./tsconfig.json",
