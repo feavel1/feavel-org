@@ -96,16 +96,20 @@
 	async function playDemo() {
 		demoLoading = true;
 		try {
-			const res = await fetch('/googoo.mp3');
+			const res = await fetch('/ZelenoglazoeTaksi.mp3');
 			const blob = await res.blob();
 			const meta = await parseBlob(blob).catch(() => null);
 			play({
-				src: '/googoo.mp3',
+				src: '/ZelenoglazoeTaksi.mp3',
 				title: meta?.common?.title ?? 'Goo Goo',
 				artist: meta?.common?.artist ?? 'Demo'
 			});
 		} catch {
-			play({ src: '/googoo.mp3', title: 'Goo Goo', artist: 'Demo' });
+			play({
+				src: '/ZelenoglazoeTaksi.mp3',
+				title: 'Zelenoglazoe Taksi',
+				artist: 'Oleg Kvasha'
+			});
 		} finally {
 			demoLoading = false;
 		}
