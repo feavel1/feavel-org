@@ -31,7 +31,10 @@ export async function GET({ params, request, locals }) {
 	const token = locals.token;
 	const convex = createConvexHttpClient({ token });
 
-	// Get post data
+	// Payment gate only: the body is not served here. A free post, or one this caller
+	// has already paid for, has no `ask` left (`getPost` nulls it once a purchase
+	// stands), so there is nothing to charge and the page reads the body from
+	// `getPostContent` once the PurchaseRecord below lands.
 	const result = await convex.query(api.posts.queries.getPost, {
 		postId: postId as Id<'posts'>
 	});
@@ -40,11 +43,10 @@ export async function GET({ params, request, locals }) {
 		return json({ error: 'Not found' }, { status: 404 });
 	}
 
-	const { post, ask } = result;
+	const { ask } = result;
 
-	// Free post or already paid — return content immediately
-	if (!ask || post.content) {
-		return json(post);
+	if (!ask) {
+		return json({ status: 'granted' });
 	}
 
 	// Build dynamic payment requirements from the Ask. Chain is deployment config, not
@@ -108,14 +110,14 @@ export async function GET({ params, request, locals }) {
 		signature: rawPayment
 	});
 
-	// Refetch full post content
-	const paidResult = await convex.query(api.posts.queries.getPost, {
-		postId: postId as Id<'posts'>
-	});
-
-	return json(paidResult?.post ?? post, {
-		headers: {
-			'PAYMENT-RESPONSE': Buffer.from(JSON.stringify(settleResult)).toString('base64')
+	// Nothing left to fetch: the buyer's own page is subscribed to `getPostContent`,
+	// which re-runs on the PurchaseRecord written above.
+	return json(
+		{ status: 'granted' },
+		{
+			headers: {
+				'PAYMENT-RESPONSE': Buffer.from(JSON.stringify(settleResult)).toString('base64')
+			}
 		}
-	});
+	);
 }

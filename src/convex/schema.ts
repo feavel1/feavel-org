@@ -5,7 +5,6 @@ const schema = defineSchema({
 	posts: defineTable({
 		title: v.string(),
 		description: v.optional(v.string()),
-		content: v.optional(v.any()),
 		authorId: v.string(),
 		visibility: v.union(v.literal('private'), v.literal('members'), v.literal('public')),
 		orgId: v.optional(v.string()),
@@ -18,6 +17,14 @@ const schema = defineSchema({
 		.index('visibility', ['visibility'])
 		.index('orgId', ['orgId'])
 		.index('createdAt', ['createdAt']),
+
+	// The Tiptap body, split out so list queries stop reading it. This is the only
+	// home for a post body: `posts` carries metadata alone.
+	postBodies: defineTable({
+		postId: v.id('posts'),
+		content: v.any(),
+		updatedAt: v.number()
+	}).index('by_postId', ['postId']),
 
 	purchaseRecords: defineTable({
 		userId: v.string(),

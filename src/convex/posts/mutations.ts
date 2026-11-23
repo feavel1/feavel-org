@@ -3,11 +3,18 @@ import { mutation } from '../_generated/server';
 import { authComponent } from '../auth';
 import {
 	createPost as createPostModel,
-	updatePost as updatePostModel,
+	updatePostMeta,
 	publishPost as publishPostModel,
-	deletePost as deletePostModel
+	deletePost as deletePostModel,
+	upsertPostBody
 } from '../model/posts';
 import { AUTH_CONSTANTS } from '../auth.constants';
+
+/**
+ * Convex rejects a document over 1 MiB. A body is measured as JSON text, so 900k
+ * leaves headroom for the body row's own fields.
+ */
+const MAX_POST_BODY_LENGTH = 900_000;
 
 /**
  * Create a new private draft post for the authenticated user.
@@ -31,7 +38,7 @@ export const createDraft = mutation({
 });
 
 /**
- * Update a post's title, description, content, and visibility.
+ * Update a post's metadata, and its body when one is sent.
  * Only the author can update.
  */
 export const updatePost = mutation({
@@ -39,7 +46,7 @@ export const updatePost = mutation({
 		postId: v.id('posts'),
 		title: v.string(),
 		description: v.optional(v.string()),
-		content: v.any(),
+		content: v.optional(v.any()),
 		visibility: v.union(v.literal('private'), v.literal('members'), v.literal('public')),
 		tags: v.optional(v.array(v.string())),
 		category: v.optional(v.string())
@@ -64,16 +71,22 @@ export const updatePost = mutation({
 		if (args.description && args.description.length > 200) {
 			throw new ConvexError('Description must be 200 characters or fewer');
 		}
+		if (args.content !== undefined && JSON.stringify(args.content).length > MAX_POST_BODY_LENGTH) {
+			throw new ConvexError('Post body is too large to save');
+		}
 
-		await updatePostModel(ctx, {
+		await updatePostMeta(ctx, {
 			postId: args.postId,
 			title: args.title,
 			description: args.description,
-			content: args.content,
 			visibility: args.visibility,
 			tags: args.tags,
 			category: args.category
 		});
+
+		if (args.content === undefined) return;
+
+		await upsertPostBody(ctx, { postId: args.postId, content: args.content });
 	}
 });
 

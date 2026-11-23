@@ -3,71 +3,82 @@ import { query } from '../_generated/server';
 import { paginationOptsValidator } from 'convex/server';
 import { authComponent, createAuth } from '../auth';
 import {
-	getPost as getPostModel,
+	getPostAccess,
+	getPostBody,
 	listDistinctCategories,
 	listDistinctTags,
 	listOrgPosts,
 	listMyPosts,
-	listPublicPosts as listPublicPostsModel,
-	listPublicPostsPaginated as listPublicPostsPaginatedModel
+	listPublicPostsPaginated as listPublicPostsPaginatedModel,
+	toPostMetadata
 } from '../model/posts';
-import { hasAccess, getAsk } from '../payments/model';
 import { AUTH_CONSTANTS } from '../auth.constants';
 
 /**
- * Get a single post by ID.
- * Returns { post, ask } where post.content is stripped if the caller
- * hasn't paid for a paywalled post.
+ * Get a single post's metadata, plus its price when one is still owed.
+ *
+ * The body is not part of this payload — `getPostContent` serves it to a viewer
+ * and `getPostForEdit` to the author. `ask` is null once the caller has paid it,
+ * so a settled viewer cannot be charged twice, and null for a free post.
+ *
+ * Returns null when the post is missing *or* not visible to the caller: a denial
+ * must be indistinguishable from a post that was never there.
  */
 export const getPost = query({
 	args: { postId: v.id('posts') },
 	handler: async (ctx, args) => {
-		const post = await getPostModel(ctx, { postId: args.postId });
-		if (!post) return null;
+		const access = await getPostAccess(ctx, { postId: args.postId });
+		if (!access?.canView) return null;
 
-		// Visibility check
-		let canView = post.visibility === 'public';
-		if (!canView) {
-			const user = await authComponent.safeGetAuthUser(ctx);
-			if (user) {
-				if (post.authorId === user._id) {
-					canView = true;
-				} else if (post.visibility === 'members' && post.orgId && AUTH_CONSTANTS.organizations) {
-					const auth = createAuth(ctx);
-					const orgs = await auth.api.listOrganizations({
-						headers: await authComponent.getHeaders(ctx)
-					});
-					canView = orgs.some((org) => org.id === post.orgId);
-				}
-			}
-		}
+		return {
+			post: toPostMetadata(access.post),
+			ask: access.hasPaid ? null : access.ask
+		};
+	}
+});
 
-		if (!canView) return null;
+/**
+ * Resolve a post body for the caller: `granted` with the content, `locked` with
+ * the price, or `denied`.
+ *
+ * `denied` is the single answer for a post that is missing *or* not visible to the
+ * caller, matching `getPost`'s rule: a denial must be indistinguishable from a post
+ * that was never there.
+ *
+ * The purchase is settled before the body row is read, so an unpaid viewer never
+ * makes us read a body we are about to withhold.
+ */
+export const getPostContent = query({
+	args: { postId: v.id('posts') },
+	handler: async (ctx, args) => {
+		const access = await getPostAccess(ctx, { postId: args.postId });
+		if (!access?.canView) return { status: 'denied' as const };
+		if (access.ask && !access.hasPaid) return { status: 'locked' as const, ask: access.ask };
 
-		// Check if there's an Ask (price) and user has paid
-		const ask = await getAsk(ctx, { resourceType: 'post', resourceId: post._id });
+		return { status: 'granted' as const, content: await getPostBody(ctx, { postId: args.postId }) };
+	}
+});
 
-		if (ask) {
-			const user = await authComponent.safeGetAuthUser(ctx);
-			const paid = await hasAccess(ctx, {
-				userId: user?._id,
-				resourceType: 'post',
-				resourceId: post._id,
-				authorId: post.authorId
-			});
+/**
+ * Editor payload: metadata and body in the same response.
+ *
+ * The editor builds its Tiptap instance once, from the first payload it gets, so
+ * a body that arrives later lands in an already-mounted empty editor and the next
+ * save writes that emptiness over the post. Author only.
+ */
+export const getPostForEdit = query({
+	args: { postId: v.id('posts') },
+	handler: async (ctx, args) => {
+		const access = await getPostAccess(ctx, { postId: args.postId });
+		// `access.user` is unset on the public fast path, which is where an author's own
+		// published post lands, so the viewer is resolved here instead.
+		const userId = access?.user?._id ?? (await authComponent.safeGetAuthUser(ctx))?._id;
+		if (!access || access.post.authorId !== userId) return null;
 
-			if (!paid) {
-				// Strip content, return metadata + ask
-				return {
-					post: { ...post, content: null },
-					ask
-				};
-			}
-			// User has access — don't expose ask to frontend
-			return { post, ask: null };
-		}
-
-		return { post, ask: null };
+		return {
+			post: toPostMetadata(access.post),
+			content: await getPostBody(ctx, { postId: args.postId })
+		};
 	}
 });
 
@@ -83,7 +94,10 @@ export const listUserPosts = query({
 		if (!user) return [];
 
 		if (AUTH_CONSTANTS.organizations && user.activeOrganizationId) {
-			const orgPosts = await listOrgPosts(ctx, { orgId: user.activeOrganizationId });
+			const orgPosts = await listOrgPosts(ctx, {
+				orgId: user.activeOrganizationId,
+				userId: user._id
+			});
 
 			// Check if user is a member of the active org
 			const auth = createAuth(ctx);
@@ -99,24 +113,6 @@ export const listUserPosts = query({
 		}
 
 		return await listMyPosts(ctx, { authorId: user._id });
-	}
-});
-
-/**
- * List all public posts for the global feed. No auth required.
- * Replaces the old listPublicPosts with paginated version.
- */
-export const listPublicPosts = query({
-	args: {
-		tags: v.optional(v.array(v.string())),
-		category: v.optional(v.string())
-	},
-	handler: async (ctx, args) => {
-		const posts = await listPublicPostsModel(ctx, {
-			tags: args.tags,
-			category: args.category
-		});
-		return posts;
 	}
 });
 

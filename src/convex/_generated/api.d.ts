@@ -22,7 +22,10 @@ import type * as model_emails_templates_baseEmail from "../model/emails/template
 import type * as model_emails_templates_emailTemplates from "../model/emails/templates/emailTemplates.js";
 import type * as model_emails_validateEmail from "../model/emails/validateEmail.js";
 import type * as model_organizations_index from "../model/organizations/index.js";
+import type * as model_posts_access from "../model/posts/access.js";
+import type * as model_posts_bodies from "../model/posts/bodies.js";
 import type * as model_posts_index from "../model/posts/index.js";
+import type * as model_posts_metadata from "../model/posts/metadata.js";
 import type * as organizations_invitations_queries from "../organizations/invitations/queries.js";
 import type * as organizations_members_mutations from "../organizations/members/mutations.js";
 import type * as organizations_mutations from "../organizations/mutations.js";
@@ -62,7 +65,10 @@ declare const fullApi: ApiFromModules<{
   "model/emails/templates/emailTemplates": typeof model_emails_templates_emailTemplates;
   "model/emails/validateEmail": typeof model_emails_validateEmail;
   "model/organizations/index": typeof model_organizations_index;
+  "model/posts/access": typeof model_posts_access;
+  "model/posts/bodies": typeof model_posts_bodies;
   "model/posts/index": typeof model_posts_index;
+  "model/posts/metadata": typeof model_posts_metadata;
   "organizations/invitations/queries": typeof organizations_invitations_queries;
   "organizations/members/mutations": typeof organizations_members_mutations;
   "organizations/mutations": typeof organizations_mutations;

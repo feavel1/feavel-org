@@ -67,8 +67,9 @@ Done
 
 ### Next
 - [ ] Browser test the full pay flow with Phantom on a paywalled post
-- [ ] Wire `/services/[entryId]` — it renders `post.content` with no paywall branch and every
-      `postId` in `lib/services/data.ts` is `'replace-with-real-post-id'`
+- [ ] Point `/services/[entryId]` at real posts — the paywall branch (`granted` / `locked` /
+      unpublished) landed with the post-bodies split, but all 8 `postId`s in `lib/services/data.ts`
+      are still `'replace-with-real-post-id'`
 - [ ] Price label says "Price (SOL)" in `PostMetaPopover` but the ask is USD/USDC
 - [ ] Paywall path has no failure messaging (no funds, user rejected, facilitator down)
 - [ ] Settle-then-write ordering: if the Convex mutation throws, money moved but content stays locked

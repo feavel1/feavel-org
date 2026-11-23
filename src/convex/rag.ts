@@ -1,23 +1,11 @@
 import { RAG } from '@convex-dev/rag';
 import { v } from 'convex/values';
-import { action, internalQuery } from './_generated/server';
+import { action, internalAction, internalQuery } from './_generated/server';
 import { components, internal } from './_generated/api';
-import type { Doc, Id } from './_generated/dataModel';
+import type { Id } from './_generated/dataModel';
 import type { EmbeddingModel } from 'ai';
-
-type PostMeta = Pick<
-	Doc<'posts'>,
-	| '_id'
-	| '_creationTime'
-	| 'title'
-	| 'description'
-	| 'visibility'
-	| 'tags'
-	| 'category'
-	| 'authorId'
-	| 'createdAt'
-	| 'updatedAt'
->;
+import { getPostBody, type PostBodyContent } from './model/posts/bodies';
+import { toPostMetadata, type PostMetadata } from './model/posts/metadata';
 
 /** Minimal shape of a ProseMirror/Tiptap document node. */
 type PmNode = { text?: string; content?: PmNode[] } | string | null | undefined;
@@ -132,34 +120,34 @@ const workersAIEmbedding: EmbeddingModel = {
 	}
 };
 
-export const listPublicPosts = internalQuery({
+/** A public post and the body text it is indexed from. */
+type IndexedPost = { post: PostMetadata; content: PostBodyContent };
+
+/** Public posts with the body each one indexes, read from `postBodies`. */
+export const listPublicPostsForIndex = internalQuery({
 	args: {},
-	handler: async (ctx) => {
-		return await ctx.db
+	handler: async (ctx): Promise<IndexedPost[]> => {
+		const posts = await ctx.db
 			.query('posts')
 			.withIndex('visibility', (q) => q.eq('visibility', 'public'))
 			.order('desc')
 			.collect();
+
+		return await Promise.all(
+			posts.map(async (post) => ({
+				post: toPostMetadata(post),
+				content: await getPostBody(ctx, { postId: post._id })
+			}))
+		);
 	}
 });
 
 export const getPostMeta = internalQuery({
 	args: { postId: v.id('posts') },
-	handler: async (ctx, args): Promise<PostMeta | null> => {
+	handler: async (ctx, args): Promise<PostMetadata | null> => {
 		const post = await ctx.db.get(args.postId);
 		if (!post) return null;
-		return {
-			_id: post._id,
-			_creationTime: post._creationTime,
-			title: post.title,
-			description: post.description,
-			visibility: post.visibility,
-			tags: post.tags,
-			category: post.category,
-			authorId: post.authorId,
-			createdAt: post.createdAt,
-			updatedAt: post.updatedAt
-		};
+		return toPostMetadata(post);
 	}
 });
 
@@ -169,8 +157,8 @@ const rag = new RAG(components.rag, {
 });
 
 /** Title + description + tags give short posts enough signal to match. */
-function buildIndexText(post: Doc<'posts'>): string {
-	const body = post.content ? extractTextFromDoc(post.content) : '';
+function buildIndexText(post: PostMetadata, content: PostBodyContent): string {
+	const body = content ? extractTextFromDoc(content) : '';
 	const header = [post.title, post.description, post.tags?.join(', ')].filter(Boolean).join('\n');
 	return [header, body].filter(Boolean).join('\n\n');
 }
@@ -178,17 +166,18 @@ function buildIndexText(post: Doc<'posts'>): string {
 /**
  * Re-index all public posts into RAG, and drop entries for posts that are no
  * longer public or no longer exist. Safe to re-run; keyed by post id.
+ * Internal: it spends embedding quota, so it is not a public function.
  */
-export const reindexPosts = action({
+export const reindexPosts = internalAction({
 	args: {},
 	handler: async (ctx) => {
-		const posts: Doc<'posts'>[] = await ctx.runQuery(internal.rag.listPublicPosts, {});
+		const posts: IndexedPost[] = await ctx.runQuery(internal.rag.listPublicPostsForIndex, {});
 		const liveKeys = new Set<string>();
 
 		let indexed = 0;
 		let skipped = 0;
-		for (const post of posts) {
-			const text = buildIndexText(post);
+		for (const { post, content } of posts) {
+			const text = buildIndexText(post, content);
 			if (!text.trim()) {
 				skipped++;
 				continue;
@@ -234,13 +223,13 @@ export const searchPosts = action({
 			limit: 10
 		});
 		const postIds = entries.map((e) => e.key).filter((k): k is string => !!k);
-		const posts: (PostMeta | null)[] = await Promise.all(
+		const posts: (PostMetadata | null)[] = await Promise.all(
 			postIds.map(async (rawId) => {
 				const postId = rawId as Id<'posts'>;
 				return await ctx.runQuery(internal.rag.getPostMeta, { postId });
 			})
 		);
 		// Re-check visibility: a post can be unpublished after it was indexed.
-		return { results: posts.filter((p): p is PostMeta => !!p && p.visibility === 'public') };
+		return { results: posts.filter((p): p is PostMetadata => !!p && p.visibility === 'public') };
 	}
 });

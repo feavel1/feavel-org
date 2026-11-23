@@ -51,7 +51,7 @@
 	const signInHref = $derived(
 		`/signin?redirectTo=${encodeURIComponent(page.url.pathname + page.url.search)}`
 	);
-	const postQuery = useQuery(api.posts.queries.getPost, () =>
+	const postQuery = useQuery(api.posts.queries.getPostContent, () =>
 		isOpen ? { postId: post._id } : 'skip'
 	);
 
@@ -71,7 +71,6 @@
 	);
 
 	let newComment = $state('');
-	let paidContent = $state<any>(null);
 	let paying = $state(false);
 
 	async function handlePay() {
@@ -80,16 +79,14 @@
 			const res = await x402.fetch(`/api/resource/post/${post._id}`);
 			// The paid response can arrive twice: the wrapper's own 204 completion, or a
 			// 402 on the post-settlement retry (reused proof rejected). Either way the
-			// PurchaseRecord is written and Convex pushes the unlocked post. Don't blank
-			// an already-unlocked post.
+			// PurchaseRecord is written, and Convex pushes the unlocked body through
+			// `getPostContent` — the route itself is only a payment gate.
 			if (res.status !== 204) {
-				if (res.status === 402) {
-					toast.success(m.posts_toast_confirmed_unlocking());
-				} else {
-					const data = (await res.json()) as { content?: unknown };
-					paidContent = data.content ?? data;
-					toast.success(m.posts_toast_confirmed_unlocked());
-				}
+				toast.success(
+					res.status === 402
+						? m.posts_toast_confirmed_unlocking()
+						: m.posts_toast_confirmed_unlocked()
+				);
 			}
 		} catch (err) {
 			// The store already sets $x402.error; the toast covers the case where the
@@ -145,7 +142,7 @@
 					<Skeleton class="mt-6 h-3 w-1/2" />
 					<Skeleton class="h-3 w-3/4" />
 				</div>
-			{:else if postQuery.data?.ask && !paidContent}
+			{:else if postQuery.data?.status === 'locked'}
 				<div class="paywall">
 					<div class="paywall-icon"><Lock size={24} /></div>
 					<h3 class="paywall-heading">{m.posts_paywall_heading()}</h3>
@@ -178,9 +175,9 @@
 					{/if}
 					{#if $x402.error}<p class="paywall-error">{$x402.error}</p>{/if}
 				</div>
-			{:else if postQuery.data?.post}
+			{:else if postQuery.data?.status === 'granted'}
 				<div class="slab-body">
-					<EdraEditor content={paidContent ?? postQuery.data.post.content} editable={false} />
+					<EdraEditor content={postQuery.data.content} editable={false} />
 				</div>
 				<div class="slab-rule" aria-hidden="true"><Separator /></div>
 				<div class="comments">

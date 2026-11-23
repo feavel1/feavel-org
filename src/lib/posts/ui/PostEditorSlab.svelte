@@ -17,7 +17,12 @@
 	const postId = $derived(post._id);
 
 	const genUploadUrl = useMutation(api.r2.genUploadUrl);
-	const postQuery = useQuery(api.posts.queries.getPost, () => (isOpen ? { postId } : 'skip'));
+	// Metadata and body in one payload: the editor below builds its Tiptap instance
+	// once, from the first content it is handed, so a body arriving after mount would
+	// leave an empty editor whose next save overwrites the real body.
+	const postQuery = useQuery(api.posts.queries.getPostForEdit, () =>
+		isOpen ? { postId } : 'skip'
+	);
 	const askQuery = useQuery(api.payments.queries.getAsk, () =>
 		isOpen ? { resourceType: 'post' as const, resourceId: postId } : 'skip'
 	);
@@ -148,10 +153,10 @@
 				<div class="loading">
 					{#each Array(5) as _, i (i)}<Skeleton class="loading-skeleton" />{/each}
 				</div>
-			{:else if postQuery.data?.post}
+			{:else if postQuery.data}
 				<div class="slab-editor">
 					<EdraEditor
-						content={postQuery.data.post.content}
+						content={postQuery.data.content}
 						editable={true}
 						onFileUpload={handleFileUpload}
 						onUpdate={markDirty}

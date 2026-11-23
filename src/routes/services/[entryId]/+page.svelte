@@ -12,7 +12,7 @@
 	// Entries are resolved per render, so the copy follows the active locale.
 	const entries = $derived(getPortfolioEntries());
 	const entry = $derived(entries.find((e) => e.id === page.params.entryId));
-	const post = useQuery(api.posts.queries.getPost, () =>
+	const post = useQuery(api.posts.queries.getPostContent, () =>
 		entry?.postId ? { postId: entry.postId as Id<'posts'> } : 'skip'
 	);
 
@@ -27,6 +27,9 @@
 	// cannot see through, so each template literal is annotated at its use site.
 	const backHref = `${resolve('/services')}#portfolio`;
 	const contactHref = `${resolve('/services')}#contact`;
+	// Unlocking happens in the posts feed, where the paywall and the wallet live; the
+	// `postId` query parameter opens that post directly.
+	const unlockHref = $derived(`${resolve('/posts')}?postId=${entry?.postId ?? ''}`);
 </script>
 
 <svelte:head
@@ -63,9 +66,19 @@
 					<Skeleton class="h-3 w-11/12" />
 					<Skeleton class="h-3 w-9/12" />
 				</div>
-			{:else if post.data?.post?.content}
+			{:else if post.data?.status === 'granted' && post.data.content}
 				<div class="work-content">
-					<EdraEditor content={post.data.post.content} editable={false} />
+					<EdraEditor content={post.data.content} editable={false} />
+				</div>
+			{:else if post.data?.status === 'locked'}
+				<!-- Paywalled is not unpublished: the write-up exists and can be bought. -->
+				<div class="work-empty">
+					<p class="work-empty-line">
+						{m.posts_paywall_cost({ amount: post.data.ask.amount })}
+					</p>
+					<p class="work-empty-sub">{entry.description}</p>
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolved route + query -->
+					<a href={unlockHref} class="work-cta">{m.posts_paywall_heading()} →</a>
 				</div>
 			{:else}
 				<!-- Empty is a state, not an error: the catalogue entry exists but its

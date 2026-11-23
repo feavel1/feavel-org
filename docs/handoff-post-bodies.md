@@ -2,7 +2,38 @@
 
 Every post list query returns the full `posts` document, including `content` — the entire Tiptap JSON body. The feed and the editor's post picker render titles and dates; the body is fetched again by `getPost` when a post is actually opened. So the list copy is paid for and thrown away.
 
-## How to see it
+## Status: resolved
+
+The body now lives in its own `postBodies` table and `posts.content` is gone. Re-measured on the
+dev deployment after the split (10 public posts, `posts/queries:listPublicPostsPaginated`):
+
+|                          | Before   | After       | Δ          |
+| ------------------------ | -------- | ----------- | ---------- |
+| Feed page payload        | 41,521 B | **3,508 B** | **−91.6%** |
+| Largest single post      | 19,210 B | **504 B**   | **−97.4%** |
+| Posts carrying `content` | 10       | **0**       | —          |
+
+3,508 B is byte-identical to the "without `content`" projection below — the payload is now exactly
+the lean shape. Because the body no longer lives in `posts`, the read cost drops too, which a
+projection could not have achieved.
+
+The paywall path no longer touches the body at all: `getPost` returns `{ post, ask }` in 575–735 B
+for a paid post, and `getPostContent` answers a locked caller in a constant **235 B** regardless of
+body size (previously the whole document was read from storage and then stripped). Bodies are
+4.8–6.9 KB and cross the wire only on an explicit open, via `getPostContent`.
+
+A body-only save no longer patches the `posts` row, so the feed query's read-set is unchanged and
+open feeds are not re-pushed.
+
+New shape: `src/convex/model/posts/{access,bodies,metadata}.ts`; `getPost` returns metadata plus ask,
+`getPostContent` returns `granted`/`locked`/`denied`, `getPostForEdit` returns metadata and body in
+one payload. `listPublicPosts` was deleted as unused.
+
+## How it was measured (pre-split)
+
+`listPublicPosts` no longer exists, so this exact command cannot be re-run. The equivalent against
+today's code is `listPublicPostsPaginated` with `{"paginationOpts":{"numItems":100,"cursor":null}}`,
+which returns a paginated envelope instead of a bare array.
 
 ```bash
 curl -s -X POST "https://careful-camel-515.eu-west-1.convex.cloud/api/query" \
