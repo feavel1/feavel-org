@@ -9,6 +9,7 @@
 	import { slide } from 'svelte/transition';
 	import { onMount } from 'svelte';
 	import PostMetaPopover from './PostMetaPopover.svelte';
+	import { compressImage } from '../image.js';
 	import type { Editor } from '#lib/edra/tiptap/Editor';
 
 	let { post, index, isOpen = false, onselect = () => {} } = $props();
@@ -80,6 +81,10 @@
 	}
 
 	async function handleFileUpload(file: File): Promise<string> {
+		// ponytail: shrink before it leaves the browser — see image.ts for why the
+		// resize matters more than the codec. Logs `[img] old -> new` in dev.
+		file = await compressImage(file);
+
 		const mime = file.type;
 		const prefix = mime.startsWith('image/')
 			? 'images'

@@ -13,6 +13,16 @@ export const ImageExtended = (component: Component<NodeViewProps>): Node<ImageOp
 				alt: {
 					default: null
 				},
+				// ponytail: measured once at insert (MediaPlaceHolder.uploadMedia). `width`
+				// is editor layout (a percentage), these two describe the real file so the
+				// node can reserve its box before the bytes arrive. Null on anything
+				// inserted by URL or authored before this existed — see ImageExtended.svelte.
+				ar: {
+					default: null
+				},
+				tint: {
+					default: null
+				},
 				title: {
 					default: null
 				},

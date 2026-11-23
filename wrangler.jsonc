@@ -11,6 +11,24 @@
 	"workers_dev": true,
 	"preview_urls": true,
 	"observability": {
-		"enabled": true
+		"logs": {
+			"enabled": true,
+			"head_sampling_rate": 1,
+			"invocation_logs": true,
+			"persist": true
+		},
+		"traces": {
+			"enabled": false,
+			"head_sampling_rate": 1,
+			"persist": true
+		}
+	},
+	"vars": {
+		"FACILITATOR_URL": "https://facilitator.payai.network",
+		"PUBLIC_CONVEX_SITE_URL": "https://careful-camel-515.eu-west-1.convex.site",
+		"PUBLIC_CONVEX_URL": "https://careful-camel-515.eu-west-1.convex.cloud",
+		"PUBLIC_X402_NETWORK": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+		"PUBLIC_X402_TOKEN_MINT": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+		"TREASURY_ADDRESS": "oKnGegxaJuWUt37QCWAKXazoyD945AAPKhiMsrXAoHL"
 	}
 }
