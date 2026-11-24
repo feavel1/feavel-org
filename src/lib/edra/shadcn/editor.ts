@@ -15,6 +15,7 @@ import { getDefaultExtensions } from '../extensions.ts';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import CodeBlock from './components/CodeBlock.svelte';
 import { MediaPlaceholder } from '../tiptap/extensions/MediaPlaceHolder.ts';
+import { FileDrop } from '../tiptap/extensions/FileDrop.ts';
 import MediaPlaceholderComp from './components/MediaPlaceHolder.svelte';
 import AudioExtendedComp from './components/AudioExtended.svelte';
 import ImageExtendedComp from './components/ImageExtended.svelte';
@@ -73,6 +74,7 @@ export const createEditor = (props?: EdraEditorProps) =>
 			MediaPlaceholder(MediaPlaceholderComp).configure({
 				onUpload: props?.onFileUpload
 			}),
+			FileDrop(), // ponytail: drag-and-drop / paste, handed to the command above
 			AudioExtended(AudioExtendedComp),
 			ImageExtended(ImageExtendedComp),
 			VideoExtended(VideoExtendedComp),

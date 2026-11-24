@@ -24,9 +24,11 @@ declare module '@tiptap/core' {
 			setMediaUploadHandler: (handler: (file: File) => Promise<string>) => ReturnType;
 
 			/**
-			 * Upload a media and insert the result
+			 * Upload one or more media files and insert the result.
+			 * Files are inserted in the order they were given, whatever order their
+			 * uploads happen to finish in.
 			 */
-			uploadMedia: (file: File) => ReturnType;
+			uploadMedia: (files: File | File[]) => ReturnType;
 		};
 	}
 
@@ -38,6 +40,29 @@ declare module '@tiptap/core' {
 }
 
 type ImageMeta = { ar?: string; tint?: string };
+type MediaType = 'image' | 'video' | 'audio' | 'iframe';
+
+/** Three compressions in flight: hides the latency without runaway canvas memory. */
+const UPLOAD_CONCURRENCY = 3;
+
+const mediaTypeOf = (file: File): MediaType =>
+	file.type.startsWith('audio/') ? 'audio' : file.type.startsWith('video/') ? 'video' : 'image';
+
+/**
+ * `limit` tasks in flight, results yielded in *input* order — the caller inserts each
+ * one as it arrives, so an out-of-order yield would scramble the batch.
+ */
+async function* inOrder<T, R>(items: T[], task: (item: T) => Promise<R>, limit: number) {
+	const queue: Promise<R>[] = [];
+	let next = 0;
+	while (next < Math.min(limit, items.length)) queue.push(task(items[next++]));
+
+	while (queue.length) {
+		const result = await queue.shift()!;
+		if (next < items.length) queue.push(task(items[next++]));
+		yield result;
+	}
+}
 
 /**
  * Intrinsic aspect ratio ("w/h", usable as CSS `aspect-ratio`) and average
@@ -165,47 +190,84 @@ export const MediaPlaceholder = (component: Component<NodeViewProps>) =>
 					},
 
 				uploadMedia:
-					(file: File) =>
+					(input: File | File[]) =>
 					({ editor }) => {
 						const onUpload = editor.storage.mediaPlaceholder.onUpload || this.options.onUpload;
 						if (!onUpload) {
 							throw new Error('onUpload is not defined');
 						}
 
-						// Detect mediaType from current selection
-						let mediaType = 'image';
+						const files = (Array.isArray(input) ? input : [input]).filter((file) => file.size > 0);
+						if (!files.length) return false;
+
+						// ponytail: a selected placeholder pins the type, but only for a single file —
+						// a batch has to judge each file by its own mime type.
 						const { selection } = editor.state;
-						if (selection instanceof NodeSelection) {
-							const selectedNode = selection.node;
-							if (selectedNode.type.name === this.name) {
-								mediaType = selectedNode.attrs.mediaType;
-							}
-						}
+						const placeholder =
+							selection instanceof NodeSelection && selection.node.type.name === this.name
+								? selection.node
+								: null;
+						const pinned: MediaType | null =
+							placeholder && files.length === 1 ? placeholder.attrs.mediaType : null;
 
-						// ponytail: measured in parallel with the upload, so the decode never
-						// adds latency to the insert below. Images only — decoding a video here
-						// would just be wasted work.
-						const meta = mediaType === 'image' ? imageMeta(file) : Promise.resolve<ImageMeta>({});
+						const plan = files.map((file) => {
+							const type = pinned ?? mediaTypeOf(file);
+							return {
+								type,
+								// ponytail: measured in parallel with the upload, so the decode never
+								// adds latency. Images only — decoding a video here is wasted work.
+								meta: type === 'image' ? imageMeta(file) : Promise.resolve<ImageMeta>({})
+							};
+						});
 
-						void onUpload(file)
-							.then(async (src) => {
-								editor.view.focus();
-								if (mediaType === 'audio') {
-									editor.commands.setAudio({ src });
-								} else if (mediaType === 'video') {
-									editor.commands.setVideo({ src });
-								} else {
-									// ponytail: we still hold the File here, so the real ratio and an
-									// average tint are free. They let the node reserve its box before
-									// the bytes arrive. Persisting them for already-stored posts is a
-									// backfill — not worth it until someone complains.
-									const { ar, tint } = await meta;
-									editor.commands.insertContent({ type: 'image', attrs: { src, ar, tint } });
-								}
-							})
-							.catch((error) => {
-								console.error('Failed to upload media:', error);
+						const uploadOne = (file: File) =>
+							onUpload(file).catch((error: unknown) => {
+								// one bad file must not take the rest of the batch with it
+								console.error('Failed to upload media:', file.name, error);
+								return null;
 							});
+
+						void (async () => {
+							let focused = false;
+							let index = 0;
+							// ponytail: the batch is placed by position, captured once and then read back
+							// after every insert. `insertContent` cannot be used here: it leaves a
+							// NodeSelection on the atom it just inserted (Selection.near, bias -1), so the
+							// next call *replaces* the previous image — one image per batch
+							// (tiptap#3355, tiptap#6401).
+							let from = selection.from;
+							let to = selection.to;
+							for await (const src of inOrder(files, uploadOne, UPLOAD_CONCURRENCY)) {
+								const { type, meta } = plan[index++];
+								if (editor.isDestroyed) return; // slab collapsed mid-batch
+								if (!src) continue;
+								// ponytail: focus once — per-file steals would pull the caret out of
+								// whatever field the user moved on to.
+								if (!focused) {
+									editor.view.focus();
+									focused = true;
+								}
+								try {
+									if (type === 'audio' || type === 'video') {
+										// JSON, not the HTML string setAudio builds: same node, no autoplay.
+										editor.commands.insertContentAt({ from, to }, { type, attrs: { src } });
+									} else {
+										const { ar, tint } = await meta;
+										if (editor.isDestroyed) return;
+										editor.commands.insertContentAt(
+											{ from, to },
+											{ type: 'image', attrs: { src, ar, tint } }
+										);
+									}
+									from = to = editor.state.selection.to;
+								} catch (error) {
+									// ponytail: the doc can shift under an in-flight batch (typing, deleting),
+									// leaving `from` out of range. Append rather than lose the rest.
+									console.error('Failed to insert media at', from, error);
+									from = to = editor.state.doc.content.size;
+								}
+							}
+						})();
 
 						return true;
 					}

@@ -86,26 +86,33 @@
 	}
 
 	async function handleFileUpload(file: File): Promise<string> {
-		// ponytail: shrink before it leaves the browser — see image.ts for why the
-		// resize matters more than the codec. Logs `[img] old -> new` in dev.
-		file = await compressImage(file);
+		try {
+			// ponytail: shrink before it leaves the browser — see image.ts for why the
+			// resize matters more than the codec. Logs `[img] old -> new` in dev.
+			file = await compressImage(file);
 
-		const mime = file.type;
-		const prefix = mime.startsWith('image/')
-			? 'images'
-			: mime.startsWith('audio/')
-				? 'audio'
-				: mime.startsWith('video/')
-					? 'videos'
-					: 'files';
-		const { url, key } = await genUploadUrl({ prefix });
-		const res = await fetch(url, {
-			method: 'PUT',
-			headers: { 'Content-Type': file.type },
-			body: file
-		});
-		if (!res.ok) throw new Error(`Upload failed: ${res.statusText}`);
-		return `https://storage.feavel.com/${key}`;
+			const mime = file.type;
+			const prefix = mime.startsWith('image/')
+				? 'images'
+				: mime.startsWith('audio/')
+					? 'audio'
+					: mime.startsWith('video/')
+						? 'videos'
+						: 'files';
+			const { url, key } = await genUploadUrl({ prefix });
+			const res = await fetch(url, {
+				method: 'PUT',
+				headers: { 'Content-Type': file.type },
+				body: file
+			});
+			if (!res.ok) throw new Error(`Upload failed: ${res.statusText}`);
+			return `https://storage.feavel.com/${key}`;
+		} catch (err) {
+			// ponytail: the command swallows failures so the batch can continue, so the
+			// user needs this toast or a bad file vanishes into the console.
+			toast.error(`Could not upload ${file.name}`);
+			throw err;
+		}
 	}
 
 	function timeAgo(ts: number): string {

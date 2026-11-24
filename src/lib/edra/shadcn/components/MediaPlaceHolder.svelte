@@ -15,9 +15,10 @@
 
 	function handleFileSubmit(e: SubmitEvent) {
 		e.preventDefault();
-		const file = files?.[0];
-		if (file) {
-			editor.commands.uploadMedia(file);
+		const picked = Array.from(files ?? []);
+		if (picked.length) {
+			editor.commands.uploadMedia(picked);
+			files = undefined;
 			open = false;
 		}
 	}
@@ -94,7 +95,7 @@
 					{#if mediaType !== 'iframe'}
 						<Tabs.Content value="file">
 							<form class="flex flex-col gap-2" onsubmit={handleFileSubmit}>
-								<Input type="file" bind:files />
+								<Input type="file" bind:files multiple />
 								<Button type="submit" class="capitalize">Insert {mediaType}</Button>
 							</form>
 						</Tabs.Content>

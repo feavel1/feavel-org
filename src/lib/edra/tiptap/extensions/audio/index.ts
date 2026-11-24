@@ -62,8 +62,10 @@ export const Audio = Node.create<AudioOptions>({
 			setAudio:
 				({ src }: { src: string }) =>
 				({ commands }) =>
+					// ponytail: no `autoplay="false"` — a present boolean attribute is true,
+					// so it did the opposite of what it said.
 					commands.insertContent(
-						`<audio preload="none" controls autoplay="false" style="width: 100%;" src="${src}"/>`
+						`<audio preload="none" controls style="width: 100%;" src="${src}"/>`
 					),
 
 			removeAudio:

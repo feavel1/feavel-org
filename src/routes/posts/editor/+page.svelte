@@ -8,6 +8,7 @@
 	import * as Empty from '#lib/ui/empty';
 	import { FileEdit } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	let selectedPostId = $state<Id<'posts'> | null>(
 		page.url.searchParams.get('postId') as Id<'posts'> | null
@@ -31,6 +32,21 @@
 	const client = useConvexClient();
 	const posts = useQuery(api.posts.queries.listUserPosts);
 
+	// ponytail: a file dropped on the page background — not on the editable — makes the
+	// browser navigate to it, taking the unsaved draft along. ProseMirror guards its own
+	// DOM; this covers the rest. Files only, so node drags keep their default.
+	onMount(() => {
+		const stop = (e: DragEvent) => {
+			if (e.dataTransfer?.types.includes('Files')) e.preventDefault();
+		};
+		window.addEventListener('dragover', stop);
+		window.addEventListener('drop', stop);
+		return () => {
+			window.removeEventListener('dragover', stop);
+			window.removeEventListener('drop', stop);
+		};
+	});
+
 	let creating = $state(false);
 	async function handleNewPost() {
 		if (creating) return;
@@ -46,9 +62,9 @@
 	}
 </script>
 
-<svelte:head
-	><title>{selectedPostId ? 'Editing...' : 'Post Editor'} — Feavel's Hub</title></svelte:head
->
+<svelte:head>
+	<title>{selectedPostId ? 'Editing...' : 'Post Editor'} — Feavel's Hub</title>
+</svelte:head>
 
 <section class="hero">
 	<h1 class="hero-heading">Post editor</h1>

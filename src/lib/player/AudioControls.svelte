@@ -101,8 +101,8 @@
 			const meta = await parseBlob(blob).catch(() => null);
 			play({
 				src: '/ZelenoglazoeTaksi.mp3',
-				title: meta?.common?.title ?? 'Goo Goo',
-				artist: meta?.common?.artist ?? 'Demo'
+				title: meta?.common?.title ?? 'Zelenoglazoe Taksi',
+				artist: meta?.common?.artist ?? 'Oleg Kvasha'
 			});
 		} catch {
 			play({
