@@ -23,10 +23,10 @@
 	} = $props();
 
 	const client = useConvexClient();
-	const allTagsQuery = useQuery(api.posts.queries.listTags);
-	// Categories are free-form strings on the record, so the picker is driven by
-	// what has already been written rather than a taxonomy baked into the source.
-	const categoriesQuery = useQuery(api.posts.queries.listCategories);
+	// Categories and tags are free-form strings on the record, so the pickers are
+	// driven by what has already been written rather than a taxonomy baked into the
+	// source. One argument-free query serves both, and the home page too.
+	const facetsQuery = useQuery(api.posts.queries.listPostFacets);
 
 	let metaOpen = $state(false);
 	let deleting = $state(false);
@@ -45,7 +45,7 @@
 	let showDeleteDialog = $state(false);
 
 	const filteredTags = $derived(
-		(allTagsQuery.data ?? []).filter((t) =>
+		(facetsQuery.data?.tags ?? []).filter((t) =>
 			tagQuery ? t.toLowerCase().includes(tagQuery.toLowerCase()) : true
 		)
 	);
@@ -54,7 +54,7 @@
 	// what has already been written rather than a taxonomy baked into the source.
 	const categoryOptions = $derived([
 		...new Set([
-			...(categoriesQuery.data ?? []),
+			...(facetsQuery.data?.categories ?? []),
 			// The post's own category must stay selectable even when no other
 			// public post shares it.
 			...(categoryInput ? [categoryInput] : [])
@@ -248,7 +248,7 @@
 							placeholder="Search or add tag..."
 							bind:value={tagQuery}
 							onkeydown={(e) => {
-								if (e.key === 'Enter' && tagQuery && !allTagsQuery.data?.includes(tagQuery)) {
+								if (e.key === 'Enter' && tagQuery && !facetsQuery.data?.tags.includes(tagQuery)) {
 									addTag(tagQuery);
 									tagComboOpen = false;
 								}

@@ -5,8 +5,7 @@ import { authComponent, createAuth } from '../auth';
 import {
 	getPostAccess,
 	getPostBody,
-	listDistinctCategories,
-	listDistinctTags,
+	listPublicPostFacets,
 	listOrgPosts,
 	listMyPosts,
 	listPublicPostsPaginated as listPublicPostsPaginatedModel,
@@ -116,19 +115,20 @@ export const listUserPosts = query({
 	}
 });
 
-/** List all distinct tags across public posts. */
-export const listTags = query({
+/**
+ * The feed's filter vocabulary: categories, every public tag, and the tags of
+ * each category. No arguments, so one subscription serves the whole UI — the
+ * feed, the category dropdown, the tag chips, the editor's pickers.
+ *
+ * It used to be three queries, two of them arg-taking (`listTags({ category })`,
+ * `countPublicPosts(filters)`). Those are exactly the shape `convex-svelte@0.15`
+ * mis-caches: when new args produce a result equal to the previous one, the
+ * watcher never re-fires and the data stays blank. Static args cannot.
+ */
+export const listPostFacets = query({
 	args: {},
 	handler: async (ctx) => {
-		return await listDistinctTags(ctx);
-	}
-});
-
-/** Distinct public-post categories, busiest first. Drives the filter UI. */
-export const listCategories = query({
-	args: {},
-	handler: async (ctx) => {
-		return await listDistinctCategories(ctx);
+		return await listPublicPostFacets(ctx);
 	}
 });
 

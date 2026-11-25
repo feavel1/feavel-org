@@ -45,42 +45,78 @@ export const createPost = async (
 	});
 };
 
-/** List distinct tags across all public posts. */
-export const listDistinctTags = async (ctx: QueryCtx): Promise<string[]> => {
-	const posts = await ctx.db
-		.query('posts')
-		.withIndex('visibility', (q) => q.eq('visibility', 'public'))
-		.collect();
-
-	const tags = new Set<string>();
-	for (const p of posts) {
-		if (p.tags) for (const t of p.tags) tags.add(t);
-	}
-	return [...tags].sort();
-};
+/**
+ * A post matches when it carries every requested tag (the chips are ANDed).
+ * Tags are free-form and unwritten on some posts, so absence matches nothing.
+ */
+const matchesTags = (post: Doc<'posts'>, tags?: string[]): boolean =>
+	!tags || tags.length === 0 || tags.every((tag) => post.tags?.includes(tag));
 
 /**
- * Distinct categories across public posts, most-used first.
- *
- * `posts.category` is a free-form string, so the UI must never hardcode a list:
- * a taxonomy baked into a Select goes stale the moment a new category is
- * written. Ordered by count so the busiest category leads the filter.
+ * Category values are free-form and written trimmed, so a comparison trims both
+ * sides — an untrimmed `posts.category` would otherwise never match the trimmed
+ * value the filter UI offers.
  */
-export const listDistinctCategories = async (ctx: QueryCtx): Promise<string[]> => {
+const matchesCategory = (post: Doc<'posts'>, category?: string): boolean =>
+	!category || (post.category ?? '').trim() === category;
+
+/**
+ * The public feed's filter vocabulary, derived from the posts themselves.
+ *
+ * One value rather than three queries because the three facets are three views of
+ * the same documents: reading them together is one scan instead of three, they
+ * cannot momentarily disagree, and — the reason this exists — a query whose
+ * arguments never change cannot hit the `convex-svelte` `useQuery` bug that
+ * blanks a result when new args happen to produce an equal value.
+ *
+ * Category and tag values are free-form strings, so the UI must never hardcode a
+ * list: a taxonomy baked into a Select goes stale the moment a new one is written.
+ */
+export type PostFacets = {
+	/** Busiest first — the home page builds its prompts in this order. */
+	categories: string[];
+	/** Every tag on a public post: what an unscoped picker offers. */
+	tags: string[];
+	/** Tags per category, so a chip can never offer a tag its category lacks. */
+	tagsByCategory: Record<string, string[]>;
+};
+
+export const listPublicPostFacets = async (ctx: QueryCtx): Promise<PostFacets> => {
 	const posts = await ctx.db
 		.query('posts')
 		.withIndex('visibility', (q) => q.eq('visibility', 'public'))
 		.collect();
 
 	const counts = new Map<string, number>();
-	for (const p of posts) {
-		const c = p.category?.trim();
-		if (c) counts.set(c, (counts.get(c) ?? 0) + 1);
+	const allTags = new Set<string>();
+	const tagsByCategory = new Map<string, Set<string>>();
+
+	// A single pass: tags are collected for the uncategorised picker and for their
+	// category in the same loop, so a post is never walked twice.
+	for (const post of posts) {
+		const tags = post.tags ?? [];
+		for (const tag of tags) allTags.add(tag);
+
+		const category = post.category?.trim();
+		if (!category) continue;
+
+		counts.set(category, (counts.get(category) ?? 0) + 1);
+		const bucket = tagsByCategory.get(category) ?? new Set<string>();
+		for (const tag of tags) bucket.add(tag);
+		tagsByCategory.set(category, bucket);
 	}
 
-	return [...counts.entries()]
-		.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-		.map(([c]) => c);
+	const sorted = (values: Iterable<string>): string[] => [...values].sort();
+
+	return {
+		categories: [...counts.entries()]
+			.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+			.map(([category]) => category),
+		tags: sorted(allTags),
+		tagsByCategory: Object.fromEntries(
+			[...tagsByCategory.entries()].map(([category, tags]) => [category, sorted(tags)])
+		)
+	};
 };
 
 /** Tags arrive in editor order; a reordered list is a real edit worth writing. */
@@ -182,30 +218,40 @@ export const listMyPosts = async (
 		.collect();
 };
 
-/** List all public posts with cursor-based pagination, newest first. */
+/**
+ * Paginate the filtered feed.
+ *
+ * `tags` is an array and `category` a free-form string, so no index can express
+ * these filters — they are applied after reading. The ordering is the whole point:
+ * **filter first, then cut the page.** Paging the unfiltered index and filtering
+ * each page afterwards returned a page holding only the few matches that happened
+ * to be in it, with every other match hidden behind a "load more" click.
+ *
+ * The cursor is ours: an offset into the filtered list, because the filters cannot
+ * be pushed into an index and so Convex's own index cursors cannot describe a
+ * position in the result. The client treats the cursor as opaque, so
+ * `usePaginatedQuery` and its "load more" bookkeeping work unchanged.
+ *
+ * Costs one read of every public post per page. Fine below ~1000 posts; a
+ * materialised `postTags` join table (plus a `[visibility, category]` index) is
+ * the move when that stops being true.
+ */
 export const listPublicPostsPaginated = async (
 	ctx: QueryCtx,
 	args: { paginationOpts: PaginationOptions; tags?: string[]; category?: string }
 ): Promise<PaginationResult<Doc<'posts'>>> => {
-	let result = await ctx.db
+	const posts = await ctx.db
 		.query('posts')
 		.withIndex('visibility', (q) => q.eq('visibility', 'public'))
 		.order('desc')
-		.paginate(args.paginationOpts);
+		.collect();
 
-	// ponytail: filter in-memory after paginate. Fine for <1000 posts.
-	// Add compound index on [visibility, tags] if this becomes a bottleneck.
-	if (args.tags && args.tags.length > 0) {
-		result = {
-			...result,
-			page: result.page.filter((p) => args.tags!.every((t) => p.tags?.includes(t)))
-		};
-	}
-	if (args.category) {
-		result = {
-			...result,
-			page: result.page.filter((p) => p.category === args.category)
-		};
-	}
-	return result;
+	const matches = posts.filter(
+		(p) => matchesTags(p, args.tags) && matchesCategory(p, args.category)
+	);
+	const offset = Math.max(0, Number(args.paginationOpts.cursor) || 0);
+	const page = matches.slice(offset, offset + args.paginationOpts.numItems);
+	const next = offset + page.length;
+
+	return { page, isDone: next >= matches.length, continueCursor: String(next) };
 };

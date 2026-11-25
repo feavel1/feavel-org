@@ -1,76 +1,96 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import type { Path } from '$app/types';
 	import RevealItem from '#lib/components/RevealItem.svelte';
 	import PostFilters from '#lib/posts/ui/PostFilters.svelte';
 	import PostSlab from '#lib/posts/ui/PostSlab.svelte';
+	import {
+		readFilters,
+		toggleTag,
+		writeFilters,
+		type FeedFilters
+	} from '#lib/posts/ui/feed-filters';
 	import { Skeleton } from '#lib/ui/skeleton';
 	import { usePaginatedQuery, useQuery } from 'convex-svelte';
 	import { api } from '#convex/_generated/api';
 	import { ListFilter } from '@lucide/svelte';
 	import * as Empty from '#lib/ui/empty';
+	import { m } from '#lib/paraglide/messages.js';
 
-	import { browser } from '$app/env';
-	import { untrack } from 'svelte';
+	const PAGE_SIZE = 5;
+	const MORE_SIZE = 15;
+	/** Fixed, uniquely keyed placeholders — index keys are not stable identities. */
+	const LOADING_ROWS = [1, 2, 3, 4];
 
-	// `page.url` may only be read during render on the server (Kit 3 guards
-	// against cross-request leakage), so the initial filter state is seeded from
-	// the query string on the client only. SSR renders the unfiltered list, which
-	// the client then narrows once hydrated.
-	let selectedPostId = $state<string | null>(null);
-	let filterTags = $state<string[]>([]);
-	let filterCategory = $state<string | null>(null);
+	// The selected filters. One `$state` object, one writer below, and a single URL
+	// write per change — nothing watches the selection to keep it in sync.
+	//
+	// Seeded from the query string, so a link that names a category or tag opens the
+	// view it names. The URL is written by `applyFilters` but never read back: a
+	// shallow `goto` updates the address bar without touching `page.url` (Kit 3
+	// reports it as `page.shallow.url`), so reading it back returns a stale value —
+	// which is how the three sync effects used to clobber each other's parameters.
+	let filters = $state<FeedFilters>(readFilters(page.url));
 
-	// Seed the filter state from the query string exactly once, after mount.
-	// `page.url` is not readable on the server outside render, and reading it
-	// inside a tracking effect would re-arm on every write below.
-	$effect(() => {
-		if (!browser) return;
-		const params = page.url.searchParams;
-		untrack(() => {
-			selectedPostId = params.get('postId');
-			filterTags = params.get('tags')?.split(',').filter(Boolean) ?? [];
-			filterCategory = params.get('category');
+	/** The one write path: new filters in, same URL out. */
+	function applyFilters(next: FeedFilters) {
+		filters = next;
+		const url = writeFilters(page.url, next);
+		void goto(resolve(`${url.pathname}${url.search}` as Path), {
+			shallow: true,
+			replace: true,
+			state: page.state
 		});
-	});
-
-	// Mirror filter state into the URL without a round trip. The last value we
-	// wrote is remembered because `page.url` only updates after `goto` resolves,
-	// so comparing against it re-fires the effect forever.
-	let lastSearch = '';
-	function syncUrl(param: string, value: string | null) {
-		if (!browser) return;
-		const url = new URL(page.url.href);
-		if (value) url.searchParams.set(param, value);
-		else url.searchParams.delete(param);
-		if (url.search === lastSearch || url.search === page.url.search) return;
-		lastSearch = url.search;
-		void goto(url, { state: page.state, shallow: true, replace: true });
 	}
-	$effect(() => {
-		syncUrl('postId', selectedPostId);
-	});
-	$effect(() => {
-		syncUrl('tags', filterTags.length > 0 ? filterTags.join(',') : null);
-	});
-	$effect(() => {
-		syncUrl('category', filterCategory);
+
+	/** Changing a filter closes the open post — it may not survive the new list. */
+	function setFilters(next: Partial<Omit<FeedFilters, 'postId'>>) {
+		applyFilters({ ...filters, ...next, postId: null });
+	}
+
+	const queryArgs = $derived({
+		category: filters.category ?? undefined,
+		tags: filters.tags.length > 0 ? filters.tags : undefined
 	});
 
-	const tagsQuery = useQuery(api.posts.queries.listTags);
+	// One argument-free query for the whole filter vocabulary: the categories, every
+	// tag, and each category's tags. Nothing here re-subscribes when a filter
+	// changes — the client picks the slice it needs out of one value it already has.
+	const facetsQuery = useQuery(api.posts.queries.listPostFacets);
+	const categories = $derived(facetsQuery.data?.categories ?? []);
+
+	// Tags are scoped to the selected category, so a chip can never offer a tag
+	// that has no posts in the category the reader is looking at. A Map, not the
+	// record, because category names are free-form user data and a `Map` lookup
+	// cannot be fooled by a key like `constructor`.
+	const tagsByCategory = $derived(new Map(Object.entries(facetsQuery.data?.tagsByCategory ?? {})));
+
+	// Already-selected tags stay offered even when the category does not have
+	// them: a shared link can name a tag outside the category, and a filter with
+	// no chip is a filter that cannot be switched off.
+	const tagOptions = $derived([
+		...new Set([
+			...(filters.category
+				? (tagsByCategory.get(filters.category) ?? [])
+				: (facetsQuery.data?.tags ?? [])),
+			...filters.tags
+		])
+	]);
+
 	const paginatedPosts = usePaginatedQuery(
 		api.posts.queries.listPublicPostsPaginated,
-		() => ({
-			tags: filterTags.length > 0 ? filterTags : undefined,
-			category: filterCategory ?? undefined
-		}),
-		{ initialNumItems: 5 }
+		() => queryArgs,
+		{ initialNumItems: PAGE_SIZE }
 	);
 
 	const posts = $derived(paginatedPosts.results ?? []);
-	const totalPosts = $derived(posts.length);
 
-	import { m } from '#lib/paraglide/messages.js';
+	// The match count, without a query that counts. `Exhausted` means every match is
+	// already in `posts`, so their length *is* the total; while more remain the chip
+	// shows nothing rather than a number that is really a page size.
+	const total = $derived(paginatedPosts.status === 'Exhausted' ? posts.length : null);
 </script>
 
 <svelte:head><title>{m.long_lemur_clap()}</title></svelte:head>
@@ -87,14 +107,22 @@
 
 <section class="filters-section">
 	<RevealItem delay={0}>
-		<PostFilters bind:filterCategory bind:filterTags tags={tagsQuery.data ?? []} {totalPosts} />
+		<PostFilters
+			category={filters.category}
+			selectedTags={filters.tags}
+			{tagOptions}
+			{categories}
+			{total}
+			onCategoryChange={(category) => setFilters({ category })}
+			onTagToggle={(tag) => setFilters({ tags: toggleTag(filters.tags, tag) })}
+		/>
 	</RevealItem>
 </section>
 
 <section class="post-list">
 	{#if paginatedPosts.status === 'LoadingFirstPage'}
 		<div class="loading">
-			{#each Array(4) as _, i (i)}<Skeleton class="loading-skeleton" />{/each}
+			{#each LOADING_ROWS as row (row)}<Skeleton class="loading-skeleton" />{/each}
 		</div>
 	{:else if posts.length === 0}
 		<Empty.Root>
@@ -110,14 +138,14 @@
 				<PostSlab
 					{post}
 					index={i}
-					isOpen={post._id === selectedPostId}
-					onselect={(id) => (selectedPostId = id)}
+					isOpen={post._id === filters.postId}
+					onselect={(postId) => applyFilters({ ...filters, postId })}
 				/>
 			</RevealItem>
 		{/each}
 
 		{#if paginatedPosts.status === 'CanLoadMore'}
-			<button class="load-more" onclick={() => paginatedPosts.loadMore(15)}
+			<button class="load-more" onclick={() => paginatedPosts.loadMore(MORE_SIZE)}
 				>{m.wise_seal_knit()}</button
 			>
 		{:else if paginatedPosts.status === 'LoadingMore'}

@@ -20,8 +20,8 @@
 	// Prompts come from the categories actually published, busiest first — never a
 	// hardcoded taxonomy. Empty until the query resolves, which is fine: the
 	// "everything" prompt is appended unconditionally.
-	const categoriesQuery = useQuery(api.posts.queries.listCategories);
-	const prompts = $derived(getReadingPrompts(categoriesQuery.data ?? []));
+	const facetsQuery = useQuery(api.posts.queries.listPostFacets);
+	const prompts = $derived(getReadingPrompts(facetsQuery.data?.categories ?? []));
 
 	// Roving focus order for the segmented control: one tab stop, arrow keys move.
 	let benchButtons: HTMLButtonElement[] = [];
